@@ -214,6 +214,7 @@ struct irq_data {
  * IRQD_DEFAULT_TRIGGER_SET	- Expected trigger already been set
  * IRQD_AFFINITY_ON_ACTIVATE	- Affinity is set on activation. Don't call
  *				  irq_chip::irq_set_affinity() when deactivated.
+ * IRQD_PERF_CRITICAL		- IRQ is performance-critical
  */
 enum {
 	IRQD_TRIGGER_MASK		= 0xf,
@@ -235,7 +236,11 @@ enum {
 	IRQD_MANAGED_SHUTDOWN		= (1 << 23),
 	IRQD_SINGLE_TARGET		= (1 << 24),
 	IRQD_DEFAULT_TRIGGER_SET	= (1 << 25),
+<<<<<<< HEAD
 	IRQD_AFFINITY_ON_ACTIVATE	= (1 << 29),
+=======
+	IRQD_PERF_CRITICAL		= (1 << 26),
+>>>>>>> 156870d1fbd5 (kernel: Add bi-cluster API to affine IRQs and kthreads to fast CPUs)
 };
 
 #define __irqd_to_state(d) ACCESS_PRIVATE((d)->common, state_use_accessors)
