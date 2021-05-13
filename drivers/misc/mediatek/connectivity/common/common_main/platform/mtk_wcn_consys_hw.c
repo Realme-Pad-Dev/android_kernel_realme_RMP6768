@@ -871,7 +871,6 @@ INT32 mtk_wcn_consys_hw_pwr_on(UINT32 co_clock_type)
 	mtk_wcn_consys_jtag_set_for_mcu();
 
 	WMT_PLAT_PR_DBG("CONSYS-HW-PWR-ON, finish(%d)\n", iRet);
-
 	return iRet;
 }
 
