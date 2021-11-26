@@ -703,7 +703,11 @@ static int primary_display_check_recovery_worker_kthread(void *data)
 			recovery_done = 1;
 		} while (++i < esd_try_cnt);
 
-        if (recovery_done == 1) {
+		if (ret == 1) {
+			DISPERR(
+				"[ESD]LCM recover fail. Try time:%d. Disable esd check\n",
+				esd_try_cnt);
+		} else if (recovery_done == 1) {
 			DISPCHECK("[ESD]esd recovery success\n");
 			recovery_done = 0;
 		}
