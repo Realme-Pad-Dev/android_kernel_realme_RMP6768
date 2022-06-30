@@ -1239,4 +1239,9 @@ config SND_SOC_RT5509
 	depends on I2C
 	select RT_REGMAP
 
+source "sound/soc/codecs/aw881xx/Kconfig"
+source "sound/soc/codecs/aw883xx/Kconfig"
+source "sound/soc/codecs/fs16xx/Kconfig"
+source "sound/soc/codecs/audio_info/Kconfig"
+
 endmenu

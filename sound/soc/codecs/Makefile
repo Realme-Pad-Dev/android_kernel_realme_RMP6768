@@ -494,6 +494,10 @@ obj-$(CONFIG_SND_SOC_TPA6130A2)	+= snd-soc-tpa6130a2.o
 obj-$(CONFIG_SND_SOC_RT5509)	+= snd-soc-rt5509.o
 obj-$(CONFIG_SND_SOC_MT6660)	+= snd-soc-mt6660.o
 obj-$(CONFIG_SND_SOC_AW87339)	+= aw87339/
+obj-$(CONFIG_SND_SMARTPA_AW881XX)	+= aw881xx/
+obj-$(CONFIG_SND_SMARTPA_AW883XX)	+= aw883xx/
+obj-$(CONFIG_SND_SMARTPA_FS16XX)	+= fs16xx/
+obj-$(CONFIG_SND_SOC_SMARTPAINFO)	+= audio_info/
 
 ifeq ($(CONFIG_SND_SOC_MT6358),y)
   MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
