@@ -147,15 +147,10 @@ static void swchg_select_charging_current_limit(struct charger_manager *info)
 	}
 
 	if (info->usb_unlimited) {
-		if (pdata->input_current_limit_by_aicl != -1) {
-			pdata->input_current_limit =
-				pdata->input_current_limit_by_aicl;
-		} else {
-			pdata->input_current_limit =
-				info->data.usb_unlimited_current;
-		}
+		pdata->input_current_limit = 2000000;
+
 		pdata->charging_current_limit =
-			info->data.ac_charger_current;
+					info->data.ac_charger_current;
 		goto done;
 	}
 
@@ -289,7 +284,13 @@ static void swchg_select_charging_current_limit(struct charger_manager *info)
 		}
 	}
 
+ 	chr_err("[%s]input_current_limit:%d, charging_current_limit:%d\n",
+			__func__, pdata->input_current_limit,
+			pdata->charging_current_limit);
+
 	if (pdata->thermal_charging_current_limit != -1) {
+		pdata->input_current_limit = 2000000;
+		pdata->charging_current_limit = 3500000;
 		if (pdata->thermal_charging_current_limit <
 		    pdata->charging_current_limit)
 			pdata->charging_current_limit =
@@ -297,6 +298,8 @@ static void swchg_select_charging_current_limit(struct charger_manager *info)
 	}
 
 	if (pdata->thermal_input_current_limit != -1) {
+		pdata->input_current_limit = 2200000;
+		pdata->charging_current_limit = 3500000;
 		if (pdata->thermal_input_current_limit <
 		    pdata->input_current_limit)
 			pdata->input_current_limit =

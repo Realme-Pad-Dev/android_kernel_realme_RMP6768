@@ -24,3 +24,7 @@ obj-$(CONFIG_SOC_TI)		+= ti/
 obj-$(CONFIG_ARCH_U8500)	+= ux500/
 obj-$(CONFIG_PLAT_VERSATILE)	+= versatile/
 obj-$(CONFIG_ARCH_ZX)		+= zte/
+# Bin.Li@EXP.BSP.bootloader.bootflow, 2017/05/15, Add for oppo device info and oppo project
+obj-$(CONFIG_OPPO_ARCH_FILE)    += oppo/
+#wen.luo@BSP.Kernel.Stability 2020/03/25 add for oplus kernel system
+obj-$(CONFIG_OPLUS_SYSTEM_KERNEL)	+= oplus/system/

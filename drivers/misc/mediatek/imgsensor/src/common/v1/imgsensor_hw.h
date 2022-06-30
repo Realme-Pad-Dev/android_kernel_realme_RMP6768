@@ -43,5 +43,7 @@ enum IMGSENSOR_RETURN imgsensor_hw_power(
 	char *curr_sensor_name,
 	enum IMGSENSOR_HW_POWER_STATUS pwr_status);
 
+extern struct IMGSENSOR_HW_CFG *imgsensor_custom_config;
+extern void get_imgsensor_custom_conf(const char *);
 #endif
 

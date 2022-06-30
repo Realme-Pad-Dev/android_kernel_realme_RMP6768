@@ -17,6 +17,7 @@
 #include "kd_camera_feature.h"
 #include "kd_imgsensor_define.h"
 
+#include "camkit_driver_types.h"
 
 enum IMGSENSOR_STATE {
 	IMGSENSOR_STATE_CLOSE,
@@ -36,11 +37,17 @@ struct IMGSENSOR_SENSOR_INST {
 	struct IMGSENSOR_SENSOR_STATUS status;
 	struct mutex                sensor_mutex;
 	struct timeval              profile_time;
+	struct delayed_work dump_frame_count_worker;
+	int dump_frame_count;
+	bool is_work_init;
 };
 
 struct IMGSENSOR_SENSOR {
 	struct IMGSENSOR_SENSOR_INST  inst;
 	struct SENSOR_FUNCTION_STRUCT *pfunc;
+	/* Customized sensor kit parameters */
+	struct sensor_kit_ops *sensor_ops;
+	struct camkit_params *kit_params;
 };
 
 #endif

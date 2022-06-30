@@ -1994,7 +1994,7 @@ int mmc_reinit_oldcard(struct mmc_host *host)
 }
 #endif
 
-static int mmc_cache_ctrl(struct mmc_host *host, u8 enable)
+int mmc_cache_ctrl(struct mmc_host *host, u8 enable)
 {
 	struct mmc_card *card = host->card;
 	unsigned int timeout;

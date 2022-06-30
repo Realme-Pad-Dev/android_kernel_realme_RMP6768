@@ -351,11 +351,17 @@ static int verity_verify_level(struct dm_verity *v, struct dm_verity_io *io,
 					   DM_VERITY_BLOCK_TYPE_METADATA,
 					   hash_block, data, NULL) == 0)
 			aux->hash_verified = 1;
-		else if (verity_handle_err(v,
-					   DM_VERITY_BLOCK_TYPE_METADATA,
-					   hash_block)) {
-			r = -EIO;
-			goto release_ret_r;
+		else {
+			//data = dm_bufio_read(v->bufio, hash_block, &buf);
+			DMERR("\n verity_verify_level %s: data block %llu\n", v->data_dev->name, (unsigned long long)hash_block);
+			DMERR("\n verity_verify_level data of hash_block:\n");
+			print_hex_dump(KERN_ERR, "", DUMP_PREFIX_NONE, 16, 1, data, 4096, true);
+			if (verity_handle_err(v,
+						   DM_VERITY_BLOCK_TYPE_METADATA,
+						   hash_block)) {
+				r = -EIO;
+				goto release_ret_r;
+			}
 		}
 	}
 
@@ -517,6 +523,9 @@ static int verity_verify_io(struct dm_verity_io *io)
 	unsigned b;
 	struct verity_result res;
 
+	struct dm_buffer *buf;
+	u8 *data;
+
 	for (b = 0; b < io->n_blocks; b++) {
 		int r;
 		sector_t cur_block = io->block + b;
@@ -570,9 +579,16 @@ static int verity_verify_io(struct dm_verity_io *io)
 		else if (verity_fec_decode(v, io, DM_VERITY_BLOCK_TYPE_DATA,
 					   cur_block, NULL, &start) == 0)
 			continue;
-		else if (verity_handle_err(v, DM_VERITY_BLOCK_TYPE_DATA,
-					   cur_block))
-			return -EIO;
+		else {
+			data = dm_bufio_read(v->bufio, cur_block, &buf);
+			DMERR("\n verity_verify_io %s: data block %llu\n", v->data_dev->name, (unsigned long long)cur_block);
+			DMERR("\n verity_verify_io data of cur_block:\n");
+			print_hex_dump(KERN_ERR, "", DUMP_PREFIX_NONE, 16, 1, data, 4096, true);
+
+			if (verity_handle_err(v, DM_VERITY_BLOCK_TYPE_DATA,
+						   cur_block))
+				return -EIO;
+		}
 	}
 
 	return 0;

@@ -23,6 +23,15 @@
 
 #include "imgsensor_hw.h"
 
+static int debug_log = 0;
+
+#define PFX "youhongtao"
+#define LOG_INF(format, args...)    \
+	pr_info(PFX "[%s] " format, __func__, ##args)
+#define LOG_INF_IF(...)      do { if ( (debug_log) ) { LOG_INF(__VA_ARGS__); } }while(0)
+
+const char *g_product_name;
+
 enum IMGSENSOR_RETURN imgsensor_hw_release_all(struct IMGSENSOR_HW *phw)
 {
 	int i;
@@ -33,6 +42,26 @@ enum IMGSENSOR_RETURN imgsensor_hw_release_all(struct IMGSENSOR_HW *phw)
 	}
 	return IMGSENSOR_RETURN_SUCCESS;
 }
+
+static void imgsensor_hw_id_init(enum IMGSENSOR_HW_ID *hw_id, int size)
+{
+	int i;
+	if (!hw_id || size <= 0) {
+		pr_err("%s Null ptr or invalid size, size: %d\n", __func__, size);
+		return;
+	}
+
+	/*
+	 * Fix the bug that if the pins were not defined in IMGSENSOR_HW_CFG table,
+	 * their dev ids would default to be wrong value - 0(MCLK).
+	 * Initalize the ids to be NONE.
+	 * The valid pin's hw id(dev) will be set in imgsensor_hw_init
+	 * as defined in the IMGSENSOR_HW_CFG table.
+	 */
+	for (i = 0; i < size; i++)
+		hw_id[i] = IMGSENSOR_HW_ID_NONE;
+}
+
 enum IMGSENSOR_RETURN imgsensor_hw_init(struct IMGSENSOR_HW *phw)
 {
 	struct IMGSENSOR_HW_SENSOR_POWER      *psensor_pwr;
@@ -42,6 +71,17 @@ enum IMGSENSOR_RETURN imgsensor_hw_init(struct IMGSENSOR_HW *phw)
 	char str_prop_name[LENGTH_FOR_SNPRINTF];
 	struct device_node *of_node
 		= of_find_compatible_node(NULL, NULL, "mediatek,camera_hw");
+
+	struct device_node *of_node_product
+		= of_find_compatible_node(NULL, NULL, "mediatek, camera_product");
+	if (of_property_read_string(
+		of_node_product, "product-name", &g_product_name) < 0) {
+		pr_err("Property product-name not defined\n");
+		g_product_name = NULL;
+	}
+
+	if (1)
+		get_imgsensor_custom_conf(g_product_name);
 
 	for (i = 0; i < IMGSENSOR_HW_ID_MAX_NUM; i++) {
 		if (hw_open[i] != NULL)
@@ -53,7 +93,7 @@ enum IMGSENSOR_RETURN imgsensor_hw_init(struct IMGSENSOR_HW *phw)
 
 	for (i = 0; i < IMGSENSOR_SENSOR_IDX_MAX_NUM; i++) {
 		psensor_pwr = &phw->sensor_pwr[i];
-
+		imgsensor_hw_id_init(psensor_pwr->id, IMGSENSOR_HW_PIN_MAX_NUM);
 		pcust_pwr_cfg = imgsensor_custom_config;
 		while (pcust_pwr_cfg->sensor_idx != i &&
 		       pcust_pwr_cfg->sensor_idx != IMGSENSOR_SENSOR_IDX_NONE)
@@ -106,7 +146,8 @@ static enum IMGSENSOR_RETURN imgsensor_hw_power_sequence(
 	struct IMGSENSOR_HW_DEVICE       *pdev;
 	int                               pin_cnt = 0;
 
-/*	while (ppwr_seq < ppower_sequence + IMGSENSOR_HW_SENSOR_MAX_NUM &&
+///* youhongtao resume this code
+while (ppwr_seq < ppower_sequence + IMGSENSOR_HW_SENSOR_MAX_NUM &&
 		ppwr_seq->name != NULL) {
 		if (!strcmp(ppwr_seq->name, PLATFORM_POWER_SEQ_NAME)) {
 			if (sensor_idx == ppwr_seq->_idx)
@@ -120,23 +161,34 @@ static enum IMGSENSOR_RETURN imgsensor_hw_power_sequence(
 
 	if (ppwr_seq->name == NULL)
 		return IMGSENSOR_RETURN_ERROR;
-*/
+//*/
 
 	ppwr_info = ppwr_seq->pwr_info;
+
+	LOG_INF(
+	  "sensor_idx = %d, pin=%d, pin_state_on=%d, hw_id =%d, sensor name=%s\n",
+	  sensor_idx,
+	  ppwr_info->pin,
+	  ppwr_info->pin_state_on,
+	 psensor_pwr->id[ppwr_info->pin],
+	 ppwr_seq->name);
+	
 
 	while (ppwr_info->pin != IMGSENSOR_HW_PIN_NONE &&
 		ppwr_info < ppwr_seq->pwr_info + IMGSENSOR_HW_POWER_INFO_MAX) {
 
 		if (pwr_status == IMGSENSOR_HW_POWER_STATUS_ON &&
-		   ppwr_info->pin != IMGSENSOR_HW_PIN_UNDEF) {
+		   ppwr_info->pin != IMGSENSOR_HW_PIN_UNDEF &&
+		   psensor_pwr->id[ppwr_info->pin] != IMGSENSOR_HW_ID_NONE) {
 			pdev = phw->pdev[psensor_pwr->id[ppwr_info->pin]];
-		/*pr_debug(
-		 *  "sensor_idx = %d, pin=%d, pin_state_on=%d, hw_id =%d\n",
-		 *  sensor_idx,
-		 *  ppwr_info->pin,
-		 *  ppwr_info->pin_state_on,
-		 * psensor_pwr->id[ppwr_info->pin]);
-		 */
+		LOG_INF_IF(
+		  "power-on sensor_idx = %d, pin=%d, pin_state_on=%d, hw_id =%d, sensor name=%s\n",
+		  sensor_idx,
+		  ppwr_info->pin,
+		  ppwr_info->pin_state_on,
+		 psensor_pwr->id[ppwr_info->pin],
+		 ppwr_seq->name);
+		
 
 			if (pdev->set != NULL)
 				pdev->set(
@@ -157,11 +209,18 @@ static enum IMGSENSOR_RETURN imgsensor_hw_power_sequence(
 			ppwr_info--;
 			pin_cnt--;
 
-			if (ppwr_info->pin != IMGSENSOR_HW_PIN_UNDEF) {
+			if (ppwr_info->pin != IMGSENSOR_HW_PIN_UNDEF &&
+				psensor_pwr->id[ppwr_info->pin] != IMGSENSOR_HW_ID_NONE) {
 				pdev =
 				    phw->pdev[psensor_pwr->id[ppwr_info->pin]];
 				mdelay(ppwr_info->pin_on_delay);
-
+		LOG_INF_IF(
+		  "power-off sensor_idx = %d, pin=%d, pin_state_off=%d, hw_id =%d, sensor name=%s\n",
+		  sensor_idx,
+		  ppwr_info->pin,
+		  ppwr_info->pin_state_off,
+		 psensor_pwr->id[ppwr_info->pin],ppwr_seq->name);
+		
 				if (pdev->set != NULL)
 					pdev->set(
 					    pdev->pinstance,
@@ -178,7 +237,7 @@ static enum IMGSENSOR_RETURN imgsensor_hw_power_sequence(
 	return IMGSENSOR_RETURN_SUCCESS;
 }
 
-enum IMGSENSOR_RETURN imgsensor_hw_power(
+enum IMGSENSOR_RETURN imgsensor_hw_power( //youhongtao_temp
 	struct IMGSENSOR_HW     *phw,
 	struct IMGSENSOR_SENSOR *psensor,
 	char *curr_sensor_name,
@@ -188,7 +247,7 @@ enum IMGSENSOR_RETURN imgsensor_hw_power(
 	char str_index[LENGTH_FOR_SNPRINTF];
 	int ret = 0;
 
-	pr_info(
+	LOG_INF(
 		"sensor_idx %d, power %d curr_sensor_name %s, enable list %s\n",
 		sensor_idx,
 		pwr_status,
@@ -197,8 +256,9 @@ enum IMGSENSOR_RETURN imgsensor_hw_power(
 		? "NULL"
 		: phw->enable_sensor_by_index[(uint32_t)sensor_idx]);
 
-	if (phw->enable_sensor_by_index[(uint32_t)sensor_idx] &&
-	!strstr(phw->enable_sensor_by_index[(uint32_t)sensor_idx], curr_sensor_name))
+	if ((phw->enable_sensor_by_index[(uint32_t)sensor_idx] &&
+		!strstr(phw->enable_sensor_by_index[(uint32_t)sensor_idx], curr_sensor_name)) ||
+		!phw->enable_sensor_by_index[(uint32_t)sensor_idx])
 		return IMGSENSOR_RETURN_ERROR;
 
 

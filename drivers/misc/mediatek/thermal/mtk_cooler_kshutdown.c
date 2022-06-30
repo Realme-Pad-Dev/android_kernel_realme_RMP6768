@@ -84,7 +84,10 @@ static unsigned long cl_kshutdown_state[MAX_NUM_INSTANCE_MTK_COOLER_KSHUTDOWN]
 				"%s %s invokes machine_power_off\n", __func__,
 				cdev->type);
 
-		machine_power_off();
+		//Yunqing.Wang@BSP.Kernel.Stability 2020/9/3, if high temp aging version, disable thermal protection
+		#ifndef CONFIG_HIGH_TEMP_VERSION
+			machine_power_off();
+		#endif
 	}
 
 	return 0;

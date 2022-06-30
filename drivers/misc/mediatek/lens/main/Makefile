@@ -37,6 +37,8 @@ MAIN_CFILES += main_lens.c
 
 MAIN_CFILES  += common/bu64253gwzaf/BU64253GWZAF.c
 MAIN_CFILES  += common/fp5510e2af/FP5510E2AF.c
+MAIN_CFILES  += common/fp5510ee4af/FP5510EE4AF.c
+MAIN_CFILES  += common/cn3927v/CN3927V.c
 MAIN_CFILES  += common/bu6424af/BU6424AF.c
 MAIN_CFILES  += common/bu6429af/BU6429AF.c
 MAIN_CFILES  += common/bu6429af/bu64748af.c
@@ -62,6 +64,7 @@ MAIN_CFILES  += common/lc898217afc/LC898217AFC.c
 MAIN_CFILES  += common/lc898122af/LC898122AF.c
 MAIN_CFILES  += common/lc898122af/OisCmd.c
 MAIN_CFILES  += common/lc898122af/OisIni.c
+MAIN_CFILES  += common/ov5645af/OV5645AF.c
 MAIN_CFILES  += common/ad5820af/AD5820AF.c
 MAIN_CFILES  += common/wv511aaf/WV511AAF.c
 MAIN_CFILES  += common/ak7371af/AK7371AF.c
@@ -84,6 +87,8 @@ else
 
 obj-y  += main_lens.o
 obj-y  += common/fp5510e2af/
+obj-y  += common/fp5510ee4af/
+obj-y  += common/cn3927v/
 obj-y  += common/bu6424af/
 obj-y  += common/bu6429af/
 obj-y  += common/bu64748af/
@@ -106,8 +111,10 @@ obj-y  += common/lc898217afb/
 obj-y  += common/lc898217afc/
 obj-y  += common/lc898229af/
 obj-y  += common/lc898122af/
+obj-y += common/ov5645af/
 obj-y  += common/wv511aaf/
 obj-y  += common/ak7371af/
+obj-y  += common/gt9772af/
 ifeq ($(CONFIG_MTK_LENS_BU63165AF_SUPPORT), y)
   obj-y  += common/bu63165af/
 else

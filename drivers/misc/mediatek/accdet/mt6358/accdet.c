@@ -1225,6 +1225,9 @@ static void dis_micbias_work_callback(struct work_struct *work)
 }
 #endif /* end of #if PMIC_ACCDET_KERNEL */
 
+#ifdef OPPO_FEATURE_TP_BASIC
+    extern void switch_headset_state(int headset_state);
+#endif
 #if PMIC_ACCDET_KERNEL
 static void eint_work_callback(struct work_struct *work)
 #else
@@ -1258,6 +1261,9 @@ static void eint_work_callback(void)
 #else
 		enable_accdet(ACCDET_PWM_EN);
 #endif
+#ifdef OPPO_FEATURE_TP_BASIC
+                switch_headset_state(1);
+#endif
 	} else {
 		pr_info("accdet cur:plug-out, cur_eint_state = %d\n",
 			cur_eint_state);
@@ -1271,6 +1277,9 @@ static void eint_work_callback(void)
 			pmic_read(ACCDET_STATE_SWCTRL) & (~ACCDET_PWM_IDLE));
 		disable_accdet();
 		headset_plug_out();
+#ifdef OPPO_FEATURE_TP_BASIC
+                switch_headset_state(0);
+#endif
 	}
 
 #ifdef CONFIG_ACCDET_EINT

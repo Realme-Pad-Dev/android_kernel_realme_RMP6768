@@ -17,6 +17,7 @@
 #include "inc/pd_dpm_core.h"
 #include "inc/tcpci_event.h"
 #include "inc/pd_process_evt.h"
+#include <mt-plat/mtk_boot.h>
 
 /* PD Control MSG reactions */
 
@@ -215,13 +216,16 @@ static inline bool pd_process_ext_msg(
 {
 	switch (pd_event->msg) {
 
-#ifdef CONFIG_USB_PD_REV30_SRC_CAP_EXT_LOCAL
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* huangtongfeng@bsp.driver.chg  for pd+svooc */
+#ifdef CONFIG_USB_PD_REV30_SRC_CAP_EXT_REMOTE
 	case PD_EXT_SOURCE_CAP_EXT:
 		if (PE_MAKE_STATE_TRANSIT_SINGLE(
 			PE_SNK_GET_SOURCE_CAP_EXT, PE_SNK_READY))
 			return true;
 		break;
-#endif	/* CONFIG_USB_PD_REV30_SRC_CAP_EXT_LOCAL */
+#endif	/* CONFIG_USB_PD_REV30_SRC_CAP_EXT_REMOTE */
+#endif
 
 #ifdef CONFIG_USB_PD_REV30_STATUS_LOCAL
 	case PD_EXT_STATUS:
@@ -346,7 +350,14 @@ static inline bool pd_process_pe_msg(
 /*
  * [BLOCK] Porcess Timer MSG
  */
-
+bool oppo_power_off_charging(void)
+{
+    if (get_boot_mode() == KERNEL_POWER_OFF_CHARGING_BOOT) {
+        return true;
+    } else {
+        return false;
+    }
+}
 static inline void pd_report_typec_only_charger(struct pd_port *pd_port)
 {
 	uint8_t state;
@@ -377,7 +388,10 @@ static inline bool pd_process_timer_msg(
 	case PD_TIMER_PS_TRANSITION:
 		if (pd_port->pe_data.hard_reset_counter <=
 						PD_HARD_RESET_COUNT) {
-			PE_TRANSIT_STATE(pd_port, PE_SNK_HARD_RESET);
+			if (oppo_power_off_charging() == true && oplus_sgm41510_check_hvdcp_charging_on() == true) {
+						printk(KERN_ERR "[OPPO_CHG][%s]: is kpoc hvdcp,don't do pd hardreset\n", __func__);
+			} else
+				PE_TRANSIT_STATE(pd_port, PE_SNK_HARD_RESET);
 			return true;
 		}
 		break;

@@ -503,32 +503,193 @@ static struct BTS_TEMPERATURE BTS_Temperature_Table7[] = {
 	{125, 2522}
 };
 
+/* NCP03XH103F05RL (10K) */
+static struct BTS_TEMPERATURE BTS_Temperature_Table8[] = {
+	{-40,  195652},
+	{-39,  184917},
+	{-38,  174845},
+	{-37,  165391},
+	{-36,  156512},
+	{-35,  148171},
+	{-34,  140330},
+	{-33,  132957},
+	{-32,  126021},
+	{-31,  119493},
+	{-30,  113347},
+	{-29,  107564},
+	{-28,  102115},
+	{-27,  96977},
+	{-26,  92131 },
+	{-25,  87558 },
+	{-24,  83242 },
+	{-23,  79166 },
+	{-22,  75315 },
+	{-21,  71676 },
+	{-20,  68236 },
+	{-19,  64990 },
+	{-18,  61919 },
+	{-17,  59011 },
+	{-16,  56257 },
+	{-15,  53649 },
+	{-14,  51177 },
+	{-13,  48834 },
+	{-12,  46613 },
+	{-11,  44505 },
+	{-10,  42506 },
+	{ -9,  40599 },
+	{ -8,  38790 },
+	{ -7,  37072 },
+	{ -6,  35441 },
+	{ -5,  33892 },
+	{ -4,  32419 },
+	{ -3,  31020 },
+	{ -2,  29689 },
+	{ -1,  28423 },
+	{ 0 ,  27218 },
+	{ 1 ,  26076 },
+	{ 2 ,  24987 },
+	{ 3 ,  23950 },
+	{ 4 ,  22962 },
+	{ 5 ,  22021 },
+	{ 6 ,  21123 },
+	{ 7 ,  20266 },
+	{ 8 ,  19449 },
+	{ 9 ,  18669 },
+	{ 10,  17925 },
+	{ 11,  17213 },
+	{ 12,  16534 },
+	{ 13,  15885 },
+	{ 14,  15265 },
+	{ 15,  14673 },
+	{ 16,  14107 },
+	{ 17,  13566 },
+	{ 18,  13048 },
+	{ 19,  12554 },
+	{ 20,  12080 },
+	{ 21,  11628 },
+	{ 22,  11194 },
+	{ 23,  10779 },
+	{ 24,  10381 },
+	{ 25,  10000 },
+	{ 26,	9634 },
+	{ 27,	9283 },
+	{ 28,	8947 },
+	{ 29,	8624 },
+	{ 30,	8314 },
+	{ 31,	8018 },
+	{ 32,	7733 },
+	{ 33,	7460 },
+	{ 34,	7199 },
+	{ 35,	6947 },
+	{ 36,	6706 },
+	{ 37,	6475 },
+	{ 38,	6252 },
+	{ 39,	6039 },
+	{ 40,	5833 },
+	{ 41,	5635 },
+	{ 42,	5445 },
+	{ 43,	5262 },
+	{ 44,	5086 },
+	{ 45,	4916 },
+	{ 46,	4753 },
+	{ 47,	4597 },
+	{ 48,	4446 },
+	{ 49,	4300 },
+	{ 50,	4160 },
+	{ 51,	4026 },
+	{ 52,	3896 },
+	{ 53,	3771 },
+	{ 54,	3651 },
+	{ 55,	3535 },
+	{ 56,	3423 },
+	{ 57,	3315 },
+	{ 58,	3211 },
+	{ 59,	3111 },
+	{ 60,	3014 },
+	{ 61,	2922 },
+	{ 62,	2833 },
+	{ 63,	2748 },
+	{ 64,	2665 },
+	{ 65,	2586 },
+	{ 66,	2509 },
+	{ 67,	2435 },
+	{ 68,	2363 },
+	{ 69,	2294 },
+	{ 70,	2227 },
+	{ 71,	2162 },
+	{ 72,	2100 },
+	{ 73,	2039 },
+	{ 74,	1981 },
+	{ 75,	1924 },
+	{ 76,	1869 },
+	{ 77,	1817 },
+	{ 78,	1765 },
+	{ 79,	1716 },
+	{ 80,	1668 },
+	{ 81,	1622 },
+	{ 82,	1577 },
+	{ 83,	1534 },
+	{ 84,	1492 },
+	{ 85,	1452 },
+	{ 86,	1412 },
+	{ 87,	1374 },
+	{ 88,	1338 },
+	{ 89,	1302 },
+	{ 90,	1268 },
+	{ 91,	1234 },
+	{ 92,	1201 },
+	{ 93,	1170 },
+	{ 94,	1139 },
+	{ 95,	1109 },
+	{ 96,	1080 },
+	{ 97,	1052 },
+	{ 98,	1025 },
+	{ 99,	999  },
+	{100,	973  },
+	{101,	949  },
+	{102,	925  },
+	{103,	902  },
+	{104,	879  },
+	{105,	858  },
+	{106,	836  },
+	{107,	816  },
+	{108,	796  },
+	{109,	776  },
+	{110,	758  },
+	{111,	739  },
+	{112,	721  },
+	{113,	704  },
+	{114,	687  },
+	{115,	671  },
+	{116,	655  },
+	{117,	640  },
+	{118,	625  },
+	{119,	610  },
+	{120,	596  },
+	{121,	582  },
+	{122,	569  },
+	{123,	556  },
+	{124,	543  },
+	{125,	531  },
+};
 
 /* convert register to temperature  */
-static __s32 mtkts_bts_thermistor_conver_temp(__s32 Res)
+static __s16 mtkts_bts_thermistor_conver_temp(__s32 Res)
 {
 	int i = 0;
 	int asize = 0;
 	__s32 RES1 = 0, RES2 = 0;
-	__s32 TAP_Value = -200, TMP1 = 0, TMP2 = 0;
-#ifdef APPLY_PRECISE_BTS_TEMP
-	TAP_Value = TAP_Value * 1000;
-#endif
+	__s32 TAP_Value = -2000, TMP1 = 0, TMP2 = 0;
+
 	asize = (ntc_tbl_size / sizeof(struct BTS_TEMPERATURE));
 
 	/* mtkts_bts_dprintk("mtkts_bts_thermistor_conver_temp() :
 	 * asize = %d, Res = %d\n",asize,Res);
 	 */
 	if (Res >= BTS_Temperature_Table[0].TemperatureR) {
-		TAP_Value = -40;	/* min */
-#ifdef APPLY_PRECISE_BTS_TEMP
-		TAP_Value = TAP_Value * 1000;
-#endif
+		TAP_Value = -400;	/* min */
 	} else if (Res <= BTS_Temperature_Table[asize - 1].TemperatureR) {
-		TAP_Value = 125;	/* max */
-#ifdef APPLY_PRECISE_BTS_TEMP
-		TAP_Value = TAP_Value * 1000;
-#endif
+		TAP_Value = 1250;	/* max */
 	} else {
 		RES1 = BTS_Temperature_Table[0].TemperatureR;
 		TMP1 = BTS_Temperature_Table[0].BTS_Temp;
@@ -551,13 +712,9 @@ static __s32 mtkts_bts_thermistor_conver_temp(__s32 Res)
 			 * __LINE__,i,RES1,TMP1);
 			 */
 		}
-#ifdef APPLY_PRECISE_BTS_TEMP
-		TAP_Value = mult_frac((((Res - RES2) * TMP1) +
-			((RES1 - Res) * TMP2)), 1000, (RES1 - RES2));
-#else
-		TAP_Value = (((Res - RES2) * TMP1) + ((RES1 - Res) * TMP2))
+
+		TAP_Value = (((Res - RES2) * TMP1) + ((RES1 - Res) * TMP2)) * 10
 								/ (RES1 - RES2);
-#endif
 	}
 
 #if 0
@@ -586,7 +743,7 @@ static __s32 mtkts_bts_thermistor_conver_temp(__s32 Res)
 
 /* convert ADC_AP_temp_volt to register */
 /*Volt to Temp formula same with 6589*/
-static __s32 mtk_ts_bts_volt_to_temp(__u32 dwVolt)
+static __s16 mtk_ts_bts_volt_to_temp(__u32 dwVolt)
 {
 	__s32 TRes;
 	__u64 dwVCriAP = 0;
@@ -726,9 +883,8 @@ int mtkts_bts_get_hw_temp(void)
 	/* get HW AP temp (TSAP) */
 	/* cat /sys/class/power_supply/AP/AP_temp */
 	t_ret = get_hw_bts_temp();
-#ifndef APPLY_PRECISE_BTS_TEMP
-	t_ret = t_ret * 1000;
-#endif
+	t_ret = t_ret * 100;
+
 	mutex_unlock(&BTS_lock);
 
 	if ((tsatm_thermal_get_catm_type() == 2) &&
@@ -1149,6 +1305,10 @@ void mtkts_bts_prepare_table(int table_num)
 	case 7:		/* NCP15WF104F03RC */
 		BTS_Temperature_Table = BTS_Temperature_Table7;
 		ntc_tbl_size = sizeof(BTS_Temperature_Table7);
+		break;
+	case 8:		/* NCP03XH103F05RL */
+		BTS_Temperature_Table = BTS_Temperature_Table8;
+		ntc_tbl_size = sizeof(BTS_Temperature_Table8);
 		break;
 	default:		/* AP_NTC_10 */
 		BTS_Temperature_Table = BTS_Temperature_Table4;

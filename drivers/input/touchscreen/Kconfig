@@ -1255,4 +1255,21 @@ config TOUCHSCREEN_MTK_TOUCH
 
          To compile this dirver for used touch IC.
 
+config TOUCHSCREEN_MTK_8789P1_8185P3
+       bool "8789p1_8185p3 for Mediatek package"
+	default n
+	help
+	  Say Y here if you have hxchipset touch panel.
+
+	  If unsure, say N.
+
+	  To compile this dirver as a module, choose M here: the
+	  module will be called.
+
+source "drivers/input/touchscreen/touch_8789p1_8185p3/Kconfig"
+
+source "drivers/input/touchscreen/oppo_touchscreen/Kconfig"
+
 endif
+
+

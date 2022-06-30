@@ -40,7 +40,7 @@
 /****************************************************************************
  * variables
  ***************************************************************************/
-#define MT_LED_LEVEL_BIT 10
+#define MT_LED_LEVEL_BIT 12
 
 #ifndef CONFIG_MTK_PWM
 #define CLK_DIV1 0
@@ -74,7 +74,7 @@ static int debug_enable_led = 1;
  * for DISP backlight High resolution
  *****************************************************************************/
 #ifdef LED_INCREASE_LED_LEVEL_MTKPATCH
-#define LED_INTERNAL_LEVEL_BIT_CNT 10
+#define LED_INTERNAL_LEVEL_BIT_CNT 12
 #endif
 /* Fix dependency if CONFIG_MTK_LCM not ready */
 void __weak disp_aal_notify_backlight_changed(int bl_1024) {};
@@ -95,12 +95,17 @@ static int mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level);
 #endif
 
 #ifdef CONTROL_BL_TEMPERATURE
-static unsigned int limit = 255;
+static unsigned int limit = 4095;
 static unsigned int limit_flag;
 static unsigned int last_level;
 static unsigned int current_level;
 static DEFINE_MUTEX(bl_level_limit_mutex);
 
+static int global_lcm_id = 0;
+extern unsigned int global_lcm1_getbacklight(void);
+extern void global_lcm1_setbacklight(unsigned int level);
+extern unsigned int global_lcm2_getbacklight(void);
+extern void global_lcm2_setbacklight(unsigned int level);
 /****************************************************************************
  * external functions for display
  * this API add for control the power and temperature,
@@ -128,7 +133,7 @@ int setMaxbrightness(int max_level, int enable)
 		}
 	} else {
 		limit_flag = 0;
-		limit = 255;
+		limit = 4095;
 		mutex_unlock(&bl_level_limit_mutex);
 
 		if (current_level != 0) {
@@ -140,9 +145,44 @@ int setMaxbrightness(int max_level, int enable)
 		}
 	}
 #else
-	LEDS_DRV_DEBUG("%s go through AAL\n", __func__);
-	disp_bls_set_max_backlight(((((1 << LED_INTERNAL_LEVEL_BIT_CNT) -
-				      1) * max_level + 127) / 255));
+	LEDS_DRV_DEBUG("%s go through AAL,max_level=%d global_lcm_id=%d\n", __func__,max_level,global_lcm_id);
+	mutex_lock(&bl_level_limit_mutex);
+	if (enable == 1) {
+		limit_flag = 1;
+		limit = max_level;
+		mutex_unlock(&bl_level_limit_mutex);
+
+		if (global_lcm_id == 1) {
+			last_level = global_lcm1_getbacklight();
+		} else if (global_lcm_id == 2) {
+			last_level = global_lcm2_getbacklight();
+		}
+		if (limit < last_level) {
+			LEDS_DRV_DEBUG("%s set cur level to limit%d last_level=%d\n",
+					__func__, limit, last_level);
+			if (global_lcm_id == 1) {
+				global_lcm1_setbacklight(limit);
+			} else if (global_lcm_id == 2) {
+				global_lcm2_setbacklight(limit);
+			}
+		}
+	} else {
+		limit_flag = 0;
+		limit = 4095;
+		mutex_unlock(&bl_level_limit_mutex);
+		if (global_lcm_id == 1) {
+			last_level = global_lcm1_getbacklight();
+		} else if (global_lcm_id == 2) {
+			last_level = global_lcm2_getbacklight();
+		}
+		LEDS_DRV_DEBUG("%s set cur level to last_level=%d\n",
+				__func__, last_level);
+		if (global_lcm_id == 1) {
+			global_lcm1_setbacklight(last_level);
+		} else if (global_lcm_id == 2) {
+			global_lcm2_setbacklight(last_level);
+		}
+	}
 #endif
 	return 0;
 }
@@ -384,7 +424,7 @@ int backlight_brightness_set(int level)
 					   level);
 	} else {
 		return mt65xx_led_set_cust(&cust_led_list[TYPE_LCD],
-					   (level >> (MT_LED_LEVEL_BIT - 8)));
+					   level);
 	}
 	return 0;
 }
@@ -487,7 +527,7 @@ static int mt65xx_leds_probe(struct platform_device *pdev)
 #ifdef CONTROL_BL_TEMPERATURE
 	mutex_lock(&bl_level_limit_mutex);
 	last_level = 0;
-	limit = 255;
+	limit = 4095;
 	limit_flag = 0;
 	current_level = 0;
 	mutex_unlock(&bl_level_limit_mutex);
@@ -615,6 +655,12 @@ static int __init mt65xx_leds_init(void)
 	int ret;
 
 	LEDS_DRV_DEBUG("%s\n", __func__);
+
+	if (strstr(saved_command_line, "nt36523b_hdp_dsi_vdo_dijing")) {
+		global_lcm_id = 1;
+	} else if (strstr(saved_command_line, "hx83_hdp_dsi_vdo_txd")) {
+		global_lcm_id = 2;
+	}
 
 #ifdef CONFIG_OF
 	ret = platform_device_register(&mt65xx_leds_device);

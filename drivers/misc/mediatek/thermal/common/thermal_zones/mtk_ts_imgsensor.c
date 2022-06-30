@@ -808,7 +808,12 @@ struct thermal_cooling_device *cdev, unsigned long state)
 		/* To trigger data abort to reset the system
 		 * for thermal protection.
 		 */
-		BUG();
+		//Yunqing.Wang@BSP.Kernel.Stability 2020/9/3, if high temp aging version, disable thermal protection
+		#ifndef CONFIG_HIGH_TEMP_VERSION
+			BUG();
+		#else
+			pr_info("%s should reset but bypass\n", __func__);
+		#endif
 	}
 	return 0;
 }

@@ -807,14 +807,7 @@ int ccu_read_info_reg(int regNo)
 
 void ccu_write_info_reg(int regNo, int val)
 {
-	int *offset;
-
-	if (regNo < 0 || regNo >= 32) {
-		LOG_ERR("invalid regNo");
-		return;
-	}
-
-	offset = (int *)(uintptr_t)(ccu_base + 0x80 + regNo * 4);
+	int *offset = (int *)(uintptr_t)(ccu_base + 0x80 + regNo * 4);
 	*offset = val;
 	LOG_DBG("%s: %x\n", __func__, (unsigned int)(*offset));
 }
@@ -1181,7 +1174,7 @@ int ccu_sw_hw_reset(void)
 	ccu_status = ccu_read_reg(ccu_base, CCU_ST);
 	LOG_INF_MUST("[%s] polling CCU halt(0x%08x)\n", __func__, ccu_status);
 	duration = 0;
-	while ((ccu_status & 0x100) != 0x100) {
+	while ((ccu_status & 0x1000) != 0x1000) {
 		duration++;
 		if (duration > 1000) {
 			LOG_ERR("[%s] polling halt, 1ms timeout: (0x%08x)\n",

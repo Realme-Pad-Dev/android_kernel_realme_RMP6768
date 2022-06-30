@@ -27,5 +27,6 @@ enum meta_com_type {
 extern enum meta_com_type get_meta_com_type(void);
 extern unsigned int get_meta_com_id(void);
 extern unsigned int get_meta_uart_port(void);
+extern bool oplus_sgm41510_check_hvdcp_charging_on(void);
 
 #endif

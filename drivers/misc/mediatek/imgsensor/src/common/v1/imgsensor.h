@@ -38,6 +38,7 @@ struct IMGSENSOR {
 		(void *pinstance,
 		enum IMGSENSOR_SENSOR_IDX sensor_idx,
 		enum ISP_DRIVING_CURRENT_ENUM drive_current);
+	int camkit_enabled;
 };
 
 MINT32
@@ -69,6 +70,8 @@ MUINT32
 imgsensor_sensor_control(
 	struct IMGSENSOR_SENSOR *psensor,
 	enum MSDK_SCENARIO_ID_ENUM ScenarioId);
+
+extern struct IMGSENSOR_HW_CFG *imgsensor_custom_config;
 
 #endif
 

@@ -43,6 +43,9 @@
 #include <linux/pm_runtime.h>
 #include <linux/arm-smccc.h>
 #include <linux/soc/mediatek/mtk_sip_svc.h>
+//#ifdef ODM_LQ_EDIT
+#include <linux/notifier.h>
+//#endif
 
 #include "mtk_sd.h"
 #include <mmc/core/core.h>
@@ -83,6 +86,11 @@ static unsigned long long g_flush_data_size;
 static unsigned int g_flush_error_count;
 static int g_flush_error_happened;
 #endif
+
+//#ifdef ODM_LQ_EDIT
+static struct delayed_work eint_work;
+static BLOCKING_NOTIFIER_HEAD(sdslot_notifier_list);
+//#endif
 
 /* if eMMC cache of specific vendor shall be disabled,
  * fill CID.MID into g_emmc_cache_quirk[]
@@ -2578,6 +2586,7 @@ static void msdc_dma_start(struct msdc_host *host)
 		wints |= MSDC_INT_ACMDCRCERR | MSDC_INT_ACMDTMO
 			| MSDC_INT_ACMDRDY;
 	MSDC_SET_FIELD(MSDC_DMA_CTRL, MSDC_DMA_CTRL_START, 1);
+	atomic_set(&host->dma_status, 1);
 
 	spin_lock_irqsave(&host->reg_lock, flags);
 	MSDC_SET_BIT32(MSDC_INTEN, wints);
@@ -2627,6 +2636,7 @@ static void msdc_dma_stop(struct msdc_host *host)
 	if (retry == 0)
 		ERR_MSG("DMA stop retry timeout");
 
+	atomic_set(&host->dma_status, 0);
 	spin_lock_irqsave(&host->reg_lock, flags);
 	MSDC_CLR_BIT32(MSDC_INTEN, wints); /* Not just xfer_comp */
 	spin_unlock_irqrestore(&host->reg_lock, flags);
@@ -3683,13 +3693,22 @@ start_tune:
 #if defined(CONFIG_MTK_EMMC_CQ_SUPPORT) || defined(CONFIG_MTK_EMMC_HW_CQ)
 			/* CQ DAT tune in MMC layer, here tune CMD13 CRC */
 			if (mmc->card && mmc_card_cmdq(mmc->card))
+#ifndef EMMC_RUNTIME_AUTOK_MERGE
 				emmc_execute_dvfs_autok(host, MMC_SEND_STATUS);
+#else
+				emmc_runtime_autok_merge(MMC_SEND_STATUS);
+#endif
 			else
 #endif
 			{
 				if (host->hw->host_function == MSDC_EMMC)
+#ifndef EMMC_RUNTIME_AUTOK_MERGE
 					emmc_execute_dvfs_autok(host,
 						MMC_SEND_TUNING_BLOCK_HS200);
+#else
+					emmc_runtime_autok_merge(
+						MMC_SEND_TUNING_BLOCK_HS200);
+#endif
 				else if (host->hw->host_function == MSDC_SD)
 					sd_execute_dvfs_autok(host,
 						MMC_SEND_TUNING_BLOCK_HS200);
@@ -4388,7 +4407,8 @@ void msdc_ops_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		&& ios->timing != MMC_TIMING_LEGACY) {
 			msdc_restore_timing_setting(host);
 			pr_notice("[AUTOK]eMMC restored timing setting\n");
-		} else if (ios->timing == MMC_TIMING_MMC_HS400) {
+		} else if (ios->timing == MMC_TIMING_MMC_HS400 &&
+			ios->clock > 52000000) {
 			msdc_execute_tuning(host->mmc,
 				MMC_SEND_TUNING_BLOCK_HS200);
 			mmc_retune_disable(host->mmc);
@@ -4445,6 +4465,12 @@ static int msdc_ops_get_cd(struct mmc_host *mmc)
 		host->power_cycle_cnt, mmc->trigger_card_event);
 
 	/* spin_unlock_irqrestore(&host->lock, flags); */
+	
+//#ifdef ODM_LQ_EDIT
+	if(mmc->trigger_card_event) {
+		schedule_delayed_work(&eint_work, 0);
+	}
+//#endif
 
 	return host->card_inserted;
 }
@@ -4822,6 +4848,31 @@ static irqreturn_t msdc_cmdq_irq(struct msdc_host *host, u32 intsts)
 }
 #endif
 
+//#ifdef ODM_LQ_EDIT
+int sd_slot_register_client(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_register(&sdslot_notifier_list, nb);
+}
+EXPORT_SYMBOL(sd_slot_register_client);
+
+int sd_slot_unregister_client(struct notifier_block *nb)
+{
+	return blocking_notifier_chain_unregister(&sdslot_notifier_list, nb);
+}
+EXPORT_SYMBOL(sd_slot_unregister_client);
+
+static void msdc_delayed_eint_work(struct work_struct *work)
+{
+	//struct msdc_host *host =
+	//	container_of(work, struct msdc_host, data_timeout_work.work);
+		
+	pr_err("msdc_delayed_eint_work MSDC irq trigger!!!!\n");
+	
+	blocking_notifier_call_chain(&sdslot_notifier_list, 0, NULL);
+	return;
+}
+//#endif
+
 static irqreturn_t msdc_irq(int irq, void *dev_id)
 {
 	struct msdc_host *host = (struct msdc_host *)dev_id;
@@ -5130,6 +5181,8 @@ static void msdc_cqhci_pre_cqe_enable(struct mmc_host *mmc, bool en)
 	void __iomem *base = host->base;
 
 	if (en) {
+		/* switch to DMA mode before cmdq_enable */
+		MSDC_CLR_BIT32(MSDC_CFG, MSDC_CFG_PIO);
 		/* enable busy check */
 		MSDC_SET_BIT32(MSDC_PATCH_BIT1, MSDC_PB1_BUSY_CHECK_SEL);
 		/* default write data / busy timeout 20 * 1000ms */
@@ -5174,8 +5227,12 @@ static int msdc_cqhci_reset(struct mmc_host *mmc)
 	if (cq_host && cq_host->enabled)
 		pr_notice("WARN: data xf with cqhci enabled\n");
 
-	ret = emmc_execute_dvfs_autok(host,
-		MMC_SEND_TUNING_BLOCK_HS200);
+#ifndef EMMC_RUNTIME_AUTOK_MERGE
+		ret = emmc_execute_dvfs_autok(host, MMC_SEND_TUNING_BLOCK_HS200);
+#else
+		ret = emmc_runtime_autok_merge(MMC_SEND_TUNING_BLOCK_HS200);
+#endif
+
 
 	/* clear flag */
 	host->need_tune = TUNE_NONE;
@@ -5385,6 +5442,9 @@ static int msdc_drv_probe(struct platform_device *pdev)
 		goto release;
 	}
 
+//#ifdef ODM_LQ_EDIT
+	INIT_DELAYED_WORK(&eint_work, msdc_delayed_eint_work);
+//#endif
 	MVG_EMMC_SETUP(host);
 
 	if (hw->request_sdio_eirq)
@@ -5475,6 +5535,8 @@ static int msdc_drv_remove(struct platform_device *pdev)
 		clk_disable_unprepare(host->ahb2axi_brg_clk_ctl);
 	if (host->pclk_ctl)
 		clk_disable_unprepare(host->pclk_ctl);
+	if (host->src_hclk_ctl)
+		clk_disable_unprepare(host->src_hclk_ctl);
 #endif
 	pm_qos_remove_request(&host->msdc_pm_qos_req);
 	pm_runtime_disable(&pdev->dev);
@@ -5512,6 +5574,8 @@ static int msdc_runtime_suspend(struct device *dev)
 		clk_disable_unprepare(host->ahb2axi_brg_clk_ctl);
 	if (host->pclk_ctl)
 		clk_disable_unprepare(host->pclk_ctl);
+	if (host->src_hclk_ctl)
+		clk_disable_unprepare(host->src_hclk_ctl);
 
 	pm_qos_update_request(&host->msdc_pm_qos_req,
 		PM_QOS_DEFAULT_VALUE);
@@ -5527,6 +5591,8 @@ static int msdc_runtime_resume(struct device *dev)
 
 	pm_qos_update_request(&host->msdc_pm_qos_req, 0);
 
+	if (host->src_hclk_ctl)
+		(void)clk_prepare_enable(host->src_hclk_ctl);
 	if (host->pclk_ctl)
 		(void)clk_prepare_enable(host->pclk_ctl);
 	if (host->axi_clk_ctl)

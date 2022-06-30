@@ -34,6 +34,7 @@
 #include <mmc/core/core.h>
 #include <mmc/core/card.h>
 #include <mmc/core/mmc_ops.h>
+#include <linux/device.h>
 
 #include "dbg.h"
 #include "autok_dvfs.h"
@@ -2914,6 +2915,38 @@ static const struct file_operations msdc_proc_fops = {
 	.release = single_release,
 };
 
+static struct kobject *card_slot_device = NULL;
+static ssize_t card_slot_status_show(struct kobject *dev,
+                                              struct kobj_attribute *attr, char *buf)
+{
+    return sprintf(buf, "%d\n", gpio_get_value(cd_gpio) ? 1 : 0);
+}
+
+static struct kobj_attribute dev_attr_card_slot_status=
+        __ATTR(card_slot_status, S_IRUGO, card_slot_status_show, NULL);
+
+int card_slot_init_device_name(void)
+{
+	int error = 0;
+	if(card_slot_device != NULL){
+		pr_err("card_slot already created\n");
+		return 0;
+	}
+	card_slot_device = kobject_create_and_add("card_slot", NULL);
+	if (card_slot_device == NULL) {
+		printk("%s: card_slot register failed\n", __func__);
+		error = -ENOMEM;
+		return error ;
+	}
+	error = sysfs_create_file(card_slot_device, &dev_attr_card_slot_status.attr);
+	if (error) {
+		printk("%s: card_slot_status_create_file failed\n", __func__);
+		kobject_del(card_slot_device);
+	}
+
+	return 0 ;
+}
+
 static int msdc_help_proc_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, msdc_help_proc_show, inode->i_private);
@@ -3157,6 +3190,7 @@ int msdc_debug_proc_init(void)
 	kuid_t uid;
 	kgid_t gid;
 	struct proc_dir_entry *prEntry;
+	int ret;
 
 	uid = make_kuid(&init_user_ns, 0);
 	gid = make_kgid(&init_user_ns, 1001);
@@ -3173,6 +3207,10 @@ int msdc_debug_proc_init(void)
 
 	if (!prEntry)
 		pr_notice("[%s]: failed to create /proc/msdc_help\n", __func__);
+
+	ret = card_slot_init_device_name();
+	if (!ret)
+		pr_notice("[%s]: failed to sys/card_slot/card_slot_status\n", __func__);
 
 	prEntry = proc_create("sdcard_intr_gpio_value", 0440, NULL,
 				&sdcard_intr_gpio_value_fops);

@@ -4400,6 +4400,7 @@ static int kbase_platform_device_probe(struct platform_device *pdev)
 	kbdev = kbase_device_alloc();
 	if (!kbdev) {
 		dev_err(&pdev->dev, "Allocate device failed\n");
+		BUG_ON(1);
 		return -ENOMEM;
 	}
 
@@ -4411,6 +4412,7 @@ static int kbase_platform_device_probe(struct platform_device *pdev)
 	err |= mtk_platform_init(pdev, kbdev);
 	if (err) {
 		pr_err("[MALI] GPU: mtk_platform_init fail!\n");
+		BUG_ON(1);
 		return err;
 	}
 	/********/
@@ -4420,8 +4422,10 @@ static int kbase_platform_device_probe(struct platform_device *pdev)
 	if (err) {
 		if (err == -EPROBE_DEFER)
 			dev_err(kbdev->dev, "Device initialization Deferred\n");
-		else
+		else {
 			dev_err(kbdev->dev, "Device initialization failed\n");
+			BUG_ON(1);
+		}
 
 		dev_set_drvdata(kbdev->dev, NULL);
 		kbase_device_free(kbdev);

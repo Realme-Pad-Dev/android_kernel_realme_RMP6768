@@ -208,8 +208,10 @@ enum LCM_LANE_NUM {
 
 enum LCM_DSI_FORMAT {
 	LCM_DSI_FORMAT_RGB565 = 0,
-	LCM_DSI_FORMAT_RGB666 = 1,
-	LCM_DSI_FORMAT_RGB888 = 2
+	LCM_DSI_FORMAT_RGB666_LOOSELY = 1,
+	LCM_DSI_FORMAT_RGB666 = 2,
+	LCM_DSI_FORMAT_RGB888 = 3,
+	LCM_DSI_FORMAT_RGB101010 = 4,
 };
 
 
@@ -534,6 +536,12 @@ struct dynamic_fps_info {
 	/*unsigned int idle_check_interval;*//*ms*/
 };
 
+struct vsync_trigger_time {
+	unsigned int fps;
+	unsigned int trigger_after_te;
+	unsigned int config_expense_time;
+};
+
 
 /*DynFPS*/
 enum DynFPS_LEVEL {
@@ -677,6 +685,8 @@ struct LCM_DSI_PARAMS {
 	unsigned int cont_clock;
 	unsigned int ufoe_enable;
 	unsigned int dsc_enable;
+	unsigned int bdg_dsc_enable;
+	unsigned int bdg_ssc_disable;
 	struct LCM_UFOE_CONFIG_PARAMS ufoe_params;
 	struct LCM_DSC_CONFIG_PARAMS dsc_params;
 	unsigned int edp_panel;
@@ -738,6 +748,7 @@ struct LCM_DSI_PARAMS {
 	/*for ARR*/
 	unsigned int dynamic_fps_levels;
 	struct dynamic_fps_info dynamic_fps_table[DYNAMIC_FPS_LEVELS];
+	struct vsync_trigger_time vsync_after_te[DFPS_LEVELS];
 
 #ifdef CONFIG_MTK_HIGH_FRAME_RATE
 	/****DynFPS start****/
@@ -793,6 +804,9 @@ struct LCM_PARAMS {
 	unsigned int min_luminance;
 	unsigned int average_luminance;
 	unsigned int max_luminance;
+
+	unsigned int hbm_en_time;
+	unsigned int hbm_dis_time;
 
 #ifdef CONFIG_MTK_HIGH_FRAME_RATE
 	enum LCM_Send_Cmd_Mode sendmode;
@@ -998,6 +1012,8 @@ struct LCM_DRIVER {
 	/* /////////////////////////CABC backlight related function */
 	void (*set_backlight)(unsigned int level);
 	void (*set_backlight_cmdq)(void *handle, unsigned int level);
+	void(*set_cabc_mode_cmdq)(void *handle, unsigned int level);
+	void (*get_cabc_status)(int *status);
 	void (*set_pwm)(unsigned int divider);
 	unsigned int (*get_pwm)(unsigned int divider);
 	void (*set_backlight_mode)(unsigned int mode);
@@ -1030,6 +1046,12 @@ struct LCM_DRIVER {
 	void (*set_pwm_for_mix)(int enable);
 
 	void (*aod)(int enter);
+
+
+	bool (*get_hbm_state)(void);
+	bool (*get_hbm_wait)(void);
+	bool (*set_hbm_wait)(bool wait);
+	bool (*set_hbm_cmdq)(bool en, void *qhandle);
 
 	/* /////////////DynFPS///////////////////////////// */
 	void (*dfps_send_lcm_cmd)(void *cmdq_handle,

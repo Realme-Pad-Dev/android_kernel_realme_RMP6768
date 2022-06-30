@@ -55,6 +55,16 @@
 #include "imgsensor_clk.h"
 #include "imgsensor.h"
 
+#include "kd_camkit_define.h"
+#include "camkit_adapter.h"
+
+static int debug_log = 0;
+
+#define PFX "imgsensor"
+#define LOG_INF(format, args...)    \
+	pr_info(PFX "[%s] " format, __func__, ##args)
+#define LOG_INF_IF(...)      do { if ( (debug_log) ) { LOG_INF(__VA_ARGS__); } }while(0)
+
 #define PDAF_DATA_SIZE 4096
 
 #ifdef CONFIG_MTK_SMI_EXT
@@ -81,13 +91,20 @@ static DEFINE_MUTEX(gimgsensor_mutex);
 
 struct IMGSENSOR  gimgsensor;
 struct IMGSENSOR *pgimgsensor = &gimgsensor;
-
+extern char mtkcam0_name[camera_info_size];
+extern char mtkcam1_name[camera_info_size];
+extern void oplus_chg_set_camera_status(bool val);
 /*prevent imgsensor race condition in vulunerbility test*/
 struct mutex imgsensor_mutex;
 
 
 DEFINE_MUTEX(pinctrl_mutex);
+DEFINE_MUTEX(oc_mutex);
+extern int i2c_devinfo_device_write(char *buf);
 
+#define DUMP_REG_TIMES 3
+// 100ms
+#define HW_READ_PACKET_NUM_TIME 100
 /************************************************************************
  * Profiling
  ************************************************************************/
@@ -115,7 +132,28 @@ void IMGSENSOR_PROFILE_INIT(struct timeval *ptv) {}
 void IMGSENSOR_PROFILE(struct timeval *ptv, char *tag) {}
 #endif
 
-/************************************************************************
+MUINT32 get_driver_name(MUINT32 sensor_id, unsigned char *drv_name, MUINT32 len)
+{
+	int j;
+	int ret;
+	struct IMGSENSOR_INIT_FUNC_LIST *p_sensor_list = kdSensorList;
+
+	for (j = 0; j < MAX_NUM_OF_SUPPORT_SENSOR; j++) {
+		if (p_sensor_list[j].id == sensor_id) {
+			ret = snprintf(drv_name, len,
+				"%s", p_sensor_list[j].name);
+			if (ret < 0) {
+				pr_err("copy driver name err!");
+				return -1;
+			}
+			return 0;
+		}
+	}
+	pr_err("get driver name err!");
+	return -1;
+}
+
+/******************************************************************************
  * sensor function adapter
  ************************************************************************/
 #define IMGSENSOR_FUNCTION_ENTRY()    /*pr_info("[%s]:E\n",__FUNCTION__)*/
@@ -130,13 +168,12 @@ imgsensor_sensor_get_inst(enum IMGSENSOR_SENSOR_IDX idx)
 		return &pgimgsensor->sensor[idx];
 }
 
-static void
-imgsensor_mutex_init(struct IMGSENSOR_SENSOR_INST *psensor_inst)
+void imgsensor_mutex_init(struct IMGSENSOR_SENSOR_INST *psensor_inst)
 {
 	mutex_init(&psensor_inst->sensor_mutex);
 }
 
-static void imgsensor_mutex_lock(struct IMGSENSOR_SENSOR_INST *psensor_inst)
+void imgsensor_mutex_lock(struct IMGSENSOR_SENSOR_INST *psensor_inst)
 {
 #ifdef IMGSENSOR_LEGACY_COMPAT
 	if (psensor_inst->status.arch) {
@@ -150,7 +187,7 @@ static void imgsensor_mutex_lock(struct IMGSENSOR_SENSOR_INST *psensor_inst)
 #endif
 }
 
-static void imgsensor_mutex_unlock(struct IMGSENSOR_SENSOR_INST *psensor_inst)
+void imgsensor_mutex_unlock(struct IMGSENSOR_SENSOR_INST *psensor_inst)
 {
 #ifdef IMGSENSOR_LEGACY_COMPAT
 	if (psensor_inst->status.arch)
@@ -174,6 +211,11 @@ imgsensor_sensor_open(struct IMGSENSOR_SENSOR *psensor)
 	enum IMGSENSOR_SENSOR_IDX sensor_idx = psensor->inst.sensor_idx;
 	struct i2c_client *pi2c_client = NULL;
 #endif
+
+	LOG_INF("camkit_enabled=%d", pgimgsensor->camkit_enabled);
+	if (pgimgsensor->camkit_enabled) {
+		return camkit_sensor_open(psensor);
+	}
 
 	IMGSENSOR_FUNCTION_ENTRY();
 
@@ -259,6 +301,12 @@ imgsensor_sensor_get_info(
 	struct IMGSENSOR_SENSOR_INST *psensor_inst = &psensor->inst;
 	struct SENSOR_FUNCTION_STRUCT *psensor_func =  psensor->pfunc;
 
+	LOG_INF_IF("camkit_enabled=%d", pgimgsensor->camkit_enabled);
+	if ((&gimgsensor)->camkit_enabled) {
+		return camkit_sensor_get_info(psensor, ScenarioId,
+			pSensorInfo, pSensorConfigData);
+	}
+
 	IMGSENSOR_FUNCTION_ENTRY();
 
 	if (psensor_func &&
@@ -296,6 +344,11 @@ imgsensor_sensor_get_resolution(
 	struct IMGSENSOR_SENSOR_INST *psensor_inst = &psensor->inst;
 	struct SENSOR_FUNCTION_STRUCT *psensor_func =  psensor->pfunc;
 
+	LOG_INF_IF("camkit_enabled=%d", pgimgsensor->camkit_enabled);
+	if ((&gimgsensor)->camkit_enabled) {
+		return camkit_sensor_get_resolution(psensor, pSensorResolution);
+	}
+
 	IMGSENSOR_FUNCTION_ENTRY();
 
 	if (psensor_func &&
@@ -328,6 +381,12 @@ imgsensor_sensor_feature_control(
 	MUINT32 ret = ERROR_NONE;
 	struct IMGSENSOR_SENSOR_INST  *psensor_inst = &psensor->inst;
 	struct SENSOR_FUNCTION_STRUCT *psensor_func =  psensor->pfunc;
+
+	LOG_INF_IF("camkit_enabled=%d", pgimgsensor->camkit_enabled);
+	if ((&gimgsensor)->camkit_enabled) {
+		return camkit_sensor_feature_control(psensor, FeatureId,
+			pFeaturePara, pFeatureParaLen);
+	}
 
 	IMGSENSOR_FUNCTION_ENTRY();
 
@@ -366,6 +425,11 @@ imgsensor_sensor_control(
 
 	MSDK_SENSOR_EXPOSURE_WINDOW_STRUCT image_window;
 	MSDK_SENSOR_CONFIG_STRUCT sensor_config_data;
+
+	LOG_INF_IF("camkit_enabled=%d", pgimgsensor->camkit_enabled);
+	if ((&gimgsensor)->camkit_enabled) {
+		return camkit_sensor_control(psensor, ScenarioId);
+	}
 
 	IMGSENSOR_FUNCTION_ENTRY();
 
@@ -406,6 +470,11 @@ imgsensor_sensor_close(struct IMGSENSOR_SENSOR *psensor)
 	struct IMGSENSOR_SENSOR_INST  *psensor_inst = &psensor->inst;
 	struct SENSOR_FUNCTION_STRUCT *psensor_func =  psensor->pfunc;
 
+	LOG_INF("camkit_enabled=%d", pgimgsensor->camkit_enabled);
+	if ((&gimgsensor)->camkit_enabled) {
+		return camkit_sensor_close(psensor);
+	}
+
 	IMGSENSOR_FUNCTION_ENTRY();
 
 	if (psensor_func &&
@@ -415,6 +484,10 @@ imgsensor_sensor_close(struct IMGSENSOR_SENSOR *psensor)
 		imgsensor_mutex_lock(psensor_inst);
 
 		psensor_func->psensor_inst = psensor_inst;
+
+		if (pgimgsensor->imgsensor_oc_irq_enable != NULL)
+			pgimgsensor->imgsensor_oc_irq_enable(
+					psensor->inst.sensor_idx, false);
 
 		ret = psensor_func->SensorClose();
 		if (ret != ERROR_NONE) {
@@ -508,6 +581,8 @@ int imgsensor_set_driver(struct IMGSENSOR_SENSOR *psensor)
 	(unsigned int)psensor->inst.sensor_idx].i2c_dev);
 
 	imgsensor_i2c_filter_msg(&psensor_inst->i2c_cfg, true);
+	
+	pgimgsensor->camkit_enabled = 0;
 
 	if (get_search_list) {
 		psensor_list = psensor_list_config =
@@ -598,6 +673,14 @@ int imgsensor_set_driver(struct IMGSENSOR_SENSOR *psensor)
 					    psensor_inst->psensor_name);
 
 					ret = drv_idx;
+					if(!psensor_inst->sensor_idx) {
+						strcpy(mtkcam0_name,psensor_inst->psensor_name);
+						i2c_devinfo_device_write("BCAMM:1;");
+					}
+					else {
+						strcpy(mtkcam1_name,psensor_inst->psensor_name);
+						i2c_devinfo_device_write("FCAMM:1;");
+					}
 					break;
 				}
 			} else {
@@ -692,6 +775,63 @@ static inline int adopt_CAMERA_HW_GetInfo(void *pBuf)
 	kfree(pConfig);
 	return 0;
 }   /* adopt_CAMERA_HW_GetInfo() */
+
+static void dump_framecount_work_handler(struct work_struct *work)
+{
+
+	//read sensor send
+	struct IMGSENSOR_SENSOR_INST *imgsensor = NULL;
+	struct IMGSENSOR_SENSOR *psensor = NULL;
+	struct IMGSENSOR_SENSOR_INST *psensor_inst = NULL;
+	MUINT32 param = 0;
+	MUINT32 retLen = sizeof(MUINT32);
+
+	imgsensor = container_of(work, struct IMGSENSOR_SENSOR_INST, dump_frame_count_worker.work);
+	if (imgsensor == NULL) {
+		pr_err("ERROR:NULL imgsensor dump_framecount_work_handler\n");
+		return;
+	}
+
+	psensor = imgsensor_sensor_get_inst(imgsensor->sensor_idx);
+	if (psensor == NULL) {
+		pr_err("ERROR:can not get IMGSENSOR_SENSOR by sensor_idx(%d)\n", imgsensor->sensor_idx);
+		return;
+	}
+
+	psensor_inst = &psensor->inst;
+	if (psensor_inst == NULL) {
+		pr_err("ERROR:NULL psensor_inst \n");
+		return;
+	}
+	psensor_inst->dump_frame_count--;
+	if (psensor_inst->state != IMGSENSOR_STATE_CLOSE) {
+			if (0 != imgsensor_sensor_feature_control(psensor,SENSOR_FEATURE_DUMP_REG_LCT, (MUINT8 *)&param, &retLen)) {
+				pr_err("ERROR:imgsensor_sensor_feature_control SENSOR_FEATURE_DUMP_REG_LCT fail\n");
+			}
+	}
+	if (psensor_inst->dump_frame_count > 0)
+		schedule_delayed_work(&imgsensor->dump_frame_count_worker,msecs_to_jiffies(HW_READ_PACKET_NUM_TIME));
+}
+MUINT32 dump_sensor_reg( struct IMGSENSOR_SENSOR *psensor)
+{
+	MUINT32 ret = IMGSENSOR_RETURN_ERROR;
+	MUINT32 param = 0;
+	MUINT32 retLen = sizeof(MUINT32);
+	struct IMGSENSOR_SENSOR_INST *psensor_inst = NULL;
+	if (psensor == NULL) {
+		pr_err("ERROR:NULL psensor \n");
+		return ret;
+	}
+	psensor_inst = &psensor->inst;
+	if (psensor_inst == NULL) {
+		pr_err("ERROR:NULL psensor_inst \n");
+		return ret;
+	}
+	if (psensor_inst->state != IMGSENSOR_STATE_CLOSE) {
+			ret = imgsensor_sensor_feature_control(psensor,SENSOR_FEATURE_DUMP_REG_LCT,(MUINT8 *)&param,&retLen);
+	}
+	return ret;
+}
 
 MUINT32 Get_Camera_Temperature(
 	enum CAMERA_DUAL_CAMERA_SENSOR_ENUM senDevId,
@@ -798,7 +938,7 @@ static void cam_temperature_report_wq_routine(
 }
 #endif
 
-static inline int adopt_CAMERA_HW_GetInfo2(void *pBuf)
+static inline int adopt_CAMERA_HW_GetInfo2(void *pBuf) //youhongtao_temp
 {
 	int ret = 0;
 	struct IMAGESENSOR_GETINFO_STRUCT *pSensorGetInfo;
@@ -1078,6 +1218,16 @@ static inline int adopt_CAMERA_HW_GetInfo2(void *pBuf)
 
 	/* Add info to proc: camera_info */
 	pmtk_ccm_name = strchr(mtk_ccm_name, '\0');
+
+	if ((&gimgsensor)->camkit_enabled && psensor->kit_params &&
+		psensor->kit_params->module_params)
+		snprintf(
+			pmtk_ccm_name,
+			camera_info_size - (int)(pmtk_ccm_name - mtk_ccm_name),
+			"\nCAM[%d]:%s;",
+			psensor->inst.sensor_idx,
+			psensor->kit_params->module_params->sensor_name);
+	else // if (psensor->inst.psensor_list)         youhongtao_temp
 	snprintf(pmtk_ccm_name,
 		camera_info_size - (int)(pmtk_ccm_name - mtk_ccm_name),
 				"\n\nCAM_Info[%d]:%s;",
@@ -1273,8 +1423,15 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 	switch (pFeatureCtrl->FeatureId) {
 	case SENSOR_FEATURE_OPEN:
 		ret = imgsensor_sensor_open(psensor);
+		if (!ret) {
+			INIT_DELAYED_WORK(&psensor->inst.dump_frame_count_worker,dump_framecount_work_handler);
+			psensor->inst.is_work_init = TRUE;
+		}
 		break;
 	case SENSOR_FEATURE_CLOSE:
+		if (psensor->inst.is_work_init) {
+			cancel_delayed_work_sync(&psensor->inst.dump_frame_count_worker);
+		}
 		ret = imgsensor_sensor_close(psensor);
 		/* reset the delay frame flag */
 		break;
@@ -1967,6 +2124,46 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 	}
 	break;
 
+        case SENSOR_FEATURE_DUMP_REG_LCT:
+            dump_sensor_reg(psensor);
+            break;
+    /*  case SENSOR_FEATURE_GET_MIPI_TRAIL_VAL:
+        {
+            kal_uint32 *value = NULL;
+                unsigned long long *pFeaturePara_64 =
+                    (unsigned long long *)pFeaturePara;
+    
+            value = kmalloc(sizeof(kal_uint32), GFP_KERNEL);
+            if (value == NULL) {
+                kfree(pFeaturePara);
+                pr_err(" ioctl allocate mem failed\n");
+                return -ENOMEM;
+            }
+    
+            memset(value, 0x0, sizeof(kal_uint32));
+            *(pFeaturePara_64 + 1) = (uintptr_t)value;
+    
+            ret = imgsensor_sensor_feature_control(
+                psensor,
+                pFeatureCtrl->FeatureId,
+                (unsigned char *)pFeaturePara,
+                (unsigned int *)&FeatureParaLen);
+    
+            *(pFeaturePara_64 + 1) = *value;
+            if (copy_to_user(
+                (void __user *) pFeatureCtrl->pFeaturePara,
+                (void *)pFeaturePara,
+                FeatureParaLen)) {
+    
+                kfree(pFeaturePara);
+                pr_debug(
+                    "[CAMERA_HW][pSensorRegData] ioctl copy to user failed\n");
+                return -EFAULT;
+            }
+            kfree(value);
+            break;
+        }*/
+
 	default:
 		ret = imgsensor_sensor_feature_control(
 		    psensor,
@@ -2508,6 +2705,12 @@ static long imgsensor_ioctl(
 	case KDIMGSENSORIOC_X_SET_CURRENT_SENSOR:
 		i4RetValue = 0;
 		break;
+
+	case KDIMGSENSORIOC_X_PROBESENSOR:
+		pr_info("[camkit] command: KDIMGSENSORIOC_X_PROBESENSOR size = %lld", _IOC_SIZE(a_u4Command));
+		i4RetValue = adopt_camera_hw_probe_sensor(pBuff);
+		break;
+
 	default:
 		pr_debug("No such command %d\n", a_u4Command);
 		i4RetValue = -EPERM;
@@ -2537,6 +2740,9 @@ static int imgsensor_open(struct inode *a_pstInode, struct file *a_pstFile)
 		imgsensor_clk_enable_all(&pgimgsensor->clk);
 
 	atomic_inc(&pgimgsensor->imgsensor_open_cnt);
+	if(atomic_read(&pgimgsensor->imgsensor_open_cnt) > 0) {
+		oplus_chg_set_camera_status(true);
+	}
 	pr_info(
 	    "%s %d\n",
 	    __func__,
@@ -2566,6 +2772,9 @@ static int imgsensor_release(struct inode *a_pstInode, struct file *a_pstFile)
 #ifdef IMGSENSOR_DFS_CTRL_ENABLE
 		imgsensor_dfs_ctrl(DFS_RELEASE, NULL);
 #endif
+	}
+	if(atomic_read(&pgimgsensor->imgsensor_open_cnt) == 0) {
+		oplus_chg_set_camera_status(false);
 	}
 	pr_info(
 	    "%s %d\n",
@@ -2678,6 +2887,7 @@ static int imgsensor_probe(struct platform_device *pdev)
 	imgsensor_proc_init();
 
 	atomic_set(&pgimgsensor->imgsensor_open_cnt, 0);
+	camkit_driver_init(pgimgsensor);
 #ifdef CONFIG_MTK_SMI_EXT
 	mmdvfs_register_mmclk_switch_cb(
 	    mmsys_clk_change_cb,

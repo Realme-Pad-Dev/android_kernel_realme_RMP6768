@@ -18,4 +18,13 @@ source "drivers/soc/ux500/Kconfig"
 source "drivers/soc/versatile/Kconfig"
 source "drivers/soc/zte/Kconfig"
 
+#ifdef VENDOR_EDIT
+#wen.luo@BSP.Kernel.Stability 2020/03/25 add for oplus kernel system
+source "drivers/soc/oplus/system/Kconfig"
+#endif /* VENDOR_EDIT */
+
+#ifdef VENDOR_EDIT
+# Bin.Li@EXP.BSP.bootloader.bootflow, 2017/05/15, Add for oppo device info and oppo project
+source "drivers/soc/oppo/Kconfig"
+#endif /*VENDOR_EDIT*/
 endmenu

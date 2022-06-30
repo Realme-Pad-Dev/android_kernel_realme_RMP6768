@@ -452,9 +452,9 @@ void swpm_sp_init(phys_addr_t ref_addr,
 	total_suspend_us = 0;
 
 	share_idx_ref_ext =
-		(struct share_index_ext *)ref_addr;
+		(void *)(uintptr_t)ref_addr;
 	share_idx_ctrl_ext =
-		(struct share_ctrl_ext *)ctrl_addr;
+		(void *)(uintptr_t)ctrl_addr;
 	swpm_err("share_index_ext size = %zu bytes\n",
 		sizeof(struct share_index_ext));
 

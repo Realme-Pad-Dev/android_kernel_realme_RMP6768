@@ -34,7 +34,7 @@
 #ifdef CONFIG_MTK_ENG_BUILD
 int printk_ctrl;
 #else
-int printk_ctrl = 1;
+int printk_ctrl = 1; 
 #endif
 
 module_param_named(disable_uart, printk_ctrl, int, 0644);

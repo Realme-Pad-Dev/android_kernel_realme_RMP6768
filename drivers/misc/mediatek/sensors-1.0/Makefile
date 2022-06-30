@@ -1,7 +1,10 @@
 ifeq ($(CONFIG_MTK_SENSOR_SUPPORT),y)
 obj-$(CONFIG_CUSTOM_KERNEL_SENSORHUB)	+= sensorHub/
 obj-$(CONFIG_MTK_HWMON)	    += hwmon/
-obj-$(CONFIG_CUSTOM_KERNEL_ALSPS) += alsps/
+ifeq ($(or $(strip $(CONFIG_CUSTOM_KERNEL_ALSPS)), $(strip $(CONFIG_CUSTOM_KERNEL_ALS))),y)
+obj-y += alsps/
+endif
+#obj-$(CONFIG_CUSTOM_KERNEL_ALSPS) += alsps/
 ifeq ($(CONFIG_CUSTOM_KERNEL_ACCELGYRO),y)
 obj-y += accelgyro/
 else

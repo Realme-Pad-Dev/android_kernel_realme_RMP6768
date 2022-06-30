@@ -1257,6 +1257,10 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 	&nt36672c_fhdp_dsi_vdo_auo_cphy_90hz_lcm_drv,
 #endif
 
+#if defined(NT36672C_FHDP_DSI_VDO_60HZ_WO_DSC_SHENCHAO)
+	&nt36672c_fhdp_dsi_vdo_60hz_wo_dsc_shenchao_lcm_drv,
+#endif
+
 #if defined(OTM1287_WXGA_DSI_VDO_AUO_GUOXIAN)
 	&otm1287_wxga_dsi_vdo_auo_guoxian_lcm_drv,
 #endif
@@ -1295,6 +1299,22 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 
 #if defined(FT8756_FHDP_DSI_VDO_AUO_RT4801)
 	&ft8756_fhdp_dsi_vdo_auo_rt4801_lcm_drv,
+#endif
+
+#if defined(NT36523B_HDP_DSI_VDO_DIJING)
+	&nt36523b_hdp_dsi_vdo_dijing_lcm_drv,
+#endif
+
+#if defined(HX83_HDP_DSI_VDO_TXD)
+	&hx83_hdp_dsi_vdo_txd_lcm_drv,
+#endif
+
+#if defined(HX83102P_WUXGA2000_DSI_VDO_BOE)
+	&hx83102p_wuxga2000_dsi_vdo_boe_lcm_drv,
+#endif
+
+#if defined(R66451_FHDP_DSI_CMD_TIANMA)
+	&r66451_fhdp_dsi_cmd_tianma_lcm_drv,
 #endif
 };
 
@@ -1375,6 +1395,14 @@ unsigned char lcm_name_list[][128] = {
 
 #if defined(NT35695B_FHD_DSI_VDO_AUO_RT5081_HDP_20_9)
 	"nt35695B_fhd_dsi_vdo_auo_rt5081_hdp_20_9_drv",
+#endif
+
+#if defined(NT36523B_HDP_DSI_VDO_DIJING)
+	"nt36523b_hdp_dsi_vdo_dijing_lcm_drv",
+#endif
+
+#if defined(HX83_HDP_DSI_VDO_TXD)
+	"hx83_hdp_dsi_vdo_txd_lcm_drv",
 #endif
 };
 

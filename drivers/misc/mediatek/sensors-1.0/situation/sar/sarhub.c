@@ -260,6 +260,10 @@ static struct situation_init_info sarhub_init_info = {
 
 static int __init sarhub_init(void)
 {
+#ifdef CONFIG_MTK_AP_SAR
+	pr_info("%s is ap sar\n", __func__);
+	return 0;
+#endif
 	situation_driver_add(&sarhub_init_info, ID_SAR);
 	return 0;
 }

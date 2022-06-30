@@ -22,6 +22,8 @@
 
 char mtk_ccm_name[camera_info_size] = { 0 };
 char mtk_i2c_dump[camera_info_size] = { 0 };
+char mtkcam0_name[camera_info_size] = { 0 };
+char mtkcam1_name[camera_info_size] = { 0 };
 
 
 
@@ -432,6 +434,30 @@ static int subsys_camsensor_read(struct seq_file *m, void *v)
 	return 0;
 };
 
+static int mtkcam0_open_read(struct seq_file *m, void *v)
+{
+	pr_debug("%s %s\n", __func__, mtkcam0_name);
+	seq_printf(m, "%s\n", mtkcam0_name);
+	return 0;
+};
+
+static int mtkcam1_open_read(struct seq_file *m, void *v)
+{
+	pr_debug("%s %s\n", __func__, mtkcam1_name);
+	seq_printf(m, "%s\n", mtkcam1_name);
+	return 0;
+};
+
+static int mtkcam0_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, mtkcam0_open_read, NULL);
+};
+
+static int mtkcam1_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, mtkcam1_open_read, NULL);
+};
+
 static int proc_camera_info_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, subsys_camera_info_read, NULL);
@@ -462,6 +488,18 @@ static int imgsensor_proc_status_read(struct seq_file *m, void *v)
 static int imgsensor_proc_status_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, imgsensor_proc_status_read, NULL);
+};
+
+static const struct file_operations fcamera_proc_fops9 = {
+	.owner = THIS_MODULE,
+	.open = mtkcam0_open,
+	.read = seq_read,
+};
+
+static const struct file_operations fcamera_proc_fops10 = {
+	.owner = THIS_MODULE,
+	.open = mtkcam1_open,
+	.read = seq_read,
 };
 
 static const struct file_operations fcamera_proc_fops_status = {
@@ -528,6 +566,8 @@ enum IMGSENSOR_RETURN imgsensor_proc_init(void)
 
 	/* Camera information */
 	proc_create(PROC_CAMERA_INFO, 0664, NULL, &fcamera_proc_fops1);
+	proc_create("driver/mtkcam0", 0664, NULL, &fcamera_proc_fops9);
+	proc_create("driver/mtkcam1", 0664, NULL, &fcamera_proc_fops10);
 
 	return IMGSENSOR_RETURN_SUCCESS;
 }

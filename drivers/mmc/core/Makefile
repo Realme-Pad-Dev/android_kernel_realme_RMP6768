@@ -4,12 +4,7 @@
 #
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 ccflags-y += -I$(srctree)/drivers/mmc/host/mediatek/ComboA
-
-ifeq ($(CONFIG_MTK_PLATFORM), "mt6893")
-ccflags-y += -I$(srctree)/drivers/mmc/host/mediatek/ComboA/mt6885
-else
 ccflags-y += -I$(srctree)/drivers/mmc/host/mediatek/ComboA/$(MTK_PLATFORM)
-endif
 ccflags-y += -I$(srctree)/drivers/mmc/host
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include
@@ -34,3 +29,4 @@ obj-$(CONFIG_MMC_FFU)		+= ffu.o
 obj-$(CONFIG_MMC_BLOCK_IO_LOG)	+= mtk_mmc_block.o
 obj-$(CONFIG_MTK_MMC_PWR_WP) 	+= mtk_emmc_write_protect.o
 obj-$(CONFIG_MMC_CRYPTO)	+= mmc_crypto.o crypto.o
+obj-y				+= ffu_rlm.o

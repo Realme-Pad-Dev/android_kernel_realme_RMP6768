@@ -31,6 +31,7 @@ module_param(dbg_log_en, bool, 0644);
 
 static const struct mt6360_ldo_platform_data def_platform_data = {
 	.sdcard_det_en = true,
+	.sdcard_hlact = true,
 };
 
 struct mt6360_regulator_desc {
@@ -337,6 +338,13 @@ static int mt6360_ldo_enable(struct regulator_dev *rdev)
 				"%s: en sdcard_det fail (%d)\n", __func__, ret);
 			return ret;
 		}
+		ret = mt6360_ldo_reg_update_bits(mli, MT6360_LDO_LDO5_CTRL0,
+						 0x80, pdata->sdcard_hlact ? 0xff : 0);
+		if (ret < 0) {
+			dev_info(&rdev->dev,
+				"%s: sdcard_hlact fail (%d)\n", __func__, ret);
+			return ret;
+		}
 	}
 	return 0;
 }
@@ -639,6 +647,7 @@ static int mt6360_ldo_apply_pdata(struct mt6360_ldo_info *mli,
 
 static const struct mt6360_val_prop mt6360_val_props[] = {
 	MT6360_DT_VALPROP(sdcard_det_en, struct mt6360_ldo_platform_data),
+	MT6360_DT_VALPROP(sdcard_hlact, struct mt6360_ldo_platform_data),
 };
 
 static int mt6360_ldo_parse_dt_data(struct device *dev,

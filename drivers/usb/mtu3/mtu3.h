@@ -319,6 +319,7 @@ struct ssusb_mtk {
 	enum mtu3_dr_force_mode drp_state;
 	struct charger_device *chg_dev;
 	void *priv_data;
+
 };
 
 /**

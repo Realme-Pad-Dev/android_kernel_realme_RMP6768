@@ -467,6 +467,12 @@ config BACKLIGHT_ARCXCNN
 	  If you have an ARCxCnnnn family backlight say Y to enable
 	  the backlight driver.
 
+config BACKLIGHT_SGM
+	tristate "Backlight driver for sgm"
+	help
+	  If you have an SGM backlight say Y to enable
+	  the backlight driver.
+
 endif # BACKLIGHT_CLASS_DEVICE
 
 endif # BACKLIGHT_LCD_SUPPORT
