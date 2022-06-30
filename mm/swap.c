@@ -1021,4 +1021,10 @@ void __init swap_setup(void)
 	 * Right now other parts of the system means that we
 	 * _really_ don't want to cluster much more
 	 */
+	//#ifdef ODM_LQ_EDIT
+	//Dongjie.Li@ANDROID.Performace, for RAM OPT 2021/07/16
+	//#if defined(OPLUS_FEATURE_ZRAM_OPT)
+	page_cluster = 0;
+	//#endif /*OPLUS_FEATURE_ZRAM_OPT*/
+	//#endif
 }
