@@ -28,7 +28,7 @@
 #define MMC_FFU_MODE_NORMAL 0x0
 #define MMC_FFU_INSTALL_SET 0x1
 
-#ifdef CONFIG_MMC_FFU
+//#ifdef CONFIG_MMC_FFU
 #define MMC_FFU_ENABLE      0x0
 #define MMC_FFU_CONFIG      0x1
 #define MMC_FFU_SUPPORTED_MODES 0x1
@@ -42,6 +42,7 @@
 
 void mmc_wait_for_ffu_req(struct mmc_host *host, struct mmc_request *mrq);
 
-#endif
+int mmc_ffu(struct mmc_card *card);
+//#endif
 #endif /* FFU_H_ */
 

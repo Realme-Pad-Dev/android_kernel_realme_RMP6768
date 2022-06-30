@@ -337,6 +337,29 @@
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
 
+#define KEY_ANT_CONNECT         0x292	/* key for sar ant check */
+#define KEY_ANT_UNCONNECT       0x293	/* key for sar ant check */
+
+#define KEY_SARCS0    0x296   /* key for sar report */
+#define KEY_SAR_RELEASECS0 0X297
+
+#define KEY_SARCS1    0x286   /* key for sar report */
+#define KEY_SAR_RELEASECS1 0X287
+
+#define KEY_SARCS2    0x29a   /* key for sar report */
+#define KEY_SAR_RELEASECS2 0X29b
+
+#define KEY_SARCS3    0x29c   /* key for sar report */
+#define KEY_SAR_RELEASECS3  0X29d
+
+#define KEY_SARCS4    0x29e   /* key for sar report */
+#define KEY_SAR_RELEASECS4  0X29f
+
+#define KEY_SARCS5    0x284   /* key for sar report */
+#define KEY_SAR_RELEASECS5  0X285
+
+#define KEY_HALL_PENOUT          0x289 /* key that hall sensor to detect pen out */
+#define KEY_HALL_PENIN           0x290 /* key that hall sensor to detect pen in */
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
 #define BTN_MISC		0x100

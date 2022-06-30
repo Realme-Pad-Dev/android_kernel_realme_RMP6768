@@ -113,6 +113,10 @@ extern void __pm_relax(struct wakeup_source *ws);
 extern void pm_relax(struct device *dev);
 extern void pm_wakeup_ws_event(struct wakeup_source *ws, unsigned int msec, bool hard);
 extern void pm_wakeup_dev_event(struct device *dev, unsigned int msec, bool hard);
+/* OPPO 2013-09-17 wangjc Add begin for print wakeup source */
+#ifdef VENDOR_EDIT
+extern void pm_print_active_wakeup_sources(void);
+#endif
 
 #else /* !CONFIG_PM_SLEEP */
 
