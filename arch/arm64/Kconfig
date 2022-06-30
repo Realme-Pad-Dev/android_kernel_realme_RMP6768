@@ -748,6 +748,18 @@ config ARCH_HAS_CACHE_LINE_SIZE
 
 source "mm/Kconfig"
 
+config HIGH_TEMP_VERSION
+    default n
+    bool "Custom for hardware HIGH_TEMP_VERSION"
+    help
+        Custom for HIGH_TEMP_VERSION.
+
+config COMPILE_FACTORY_VERSION
+    default n
+    bool "Custom for hardware COMPILE_FACTORY_VERSION"
+    help
+        Custom for COMPILE_FACTORY_VERSION.
+
 config SECCOMP
 	bool "Enable seccomp to safely compute untrusted bytecode"
 	---help---
