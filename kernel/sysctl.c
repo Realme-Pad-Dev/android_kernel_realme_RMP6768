@@ -140,6 +140,14 @@ static int ten_thousand = 10000;
 static int six_hundred_forty_kb = 640 * 1024;
 #endif
 
+//#ifdef ODM_LQ_EDIT
+//Dongjie.Li@ANDROID.Performace, for RAM OPT 2021/07/16
+//#if defined(OPLUS_FEATURE_ZRAM_OPT) && defined(CONFIG_OPLUS_ZRAM_OPT)
+extern int direct_vm_swappiness;
+static int two_hundred = 200;
+//#endif /*OPLUS_FEATURE_ZRAM_OPT*/
+//#endif ODM_LQ_EDIT
+
 /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
 static unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
 
@@ -1450,7 +1458,24 @@ static struct ctl_table vm_table[] = {
 #else
 		.extra2		= &two_hundred,
 #endif
+//#ifdef ODM_LQ_EDIT
+//Dongjie.Li@ANDROID.Performace, for RAM OPT 2021/07/16
+                .extra2         = &two_hundred,
+//#endif
 	},
+//#ifdef ODM_LQ_EDIT
+//Dongjie.Li@ANDROID.Performace, for RAM OPT 2021/07/16
+//#if defined(OPLUS_FEATURE_ZRAM_OPT) && defined(CONFIG_OPLUS_ZRAM_OPT)
+	{
+		.procname	= "direct_swappiness",
+		.data		= &direct_vm_swappiness,
+		.maxlen 	= sizeof(direct_vm_swappiness),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1 	= &zero,
+		.extra2 	= &two_hundred,
+	},
+//#endif ODM_LQ_EDIT
 #ifdef CONFIG_HUGETLB_PAGE
 	{
 		.procname	= "nr_hugepages",
