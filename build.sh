@@ -9,7 +9,7 @@ ccache -M 100G
 export ARCH=arm64
 export KBUILD_BUILD_HOST=bluelight
 export KBUILD_BUILD_USER="neilchetty"
-git clone --depth=1 https://github.com/neilchetty/android_prebuilts_clang_host_linux-x86_clang-6443078
+git clone --depth=1 https://github.com/neilchetty/android_prebuilts_clang_host_linux-x86_clang-6443078 clang
 git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 los-4.9-64
 git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 los-4.9-32
 
