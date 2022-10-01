@@ -589,6 +589,7 @@ config TILE_SROM
 source "drivers/char/xillybus/Kconfig"
 
 source "drivers/char/rpmb/Kconfig"
+source "drivers/char/i2c_devinfo/Kconfig"
 
 config RANDOM_TRUST_CPU
 	bool "Initialize RNG using CPU RNG instructions"
