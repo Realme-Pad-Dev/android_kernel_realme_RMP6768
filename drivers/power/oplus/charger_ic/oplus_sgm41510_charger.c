@@ -1785,7 +1785,7 @@ void oplus_sgm41510_set_mivr(int vbatt)
 	sgm41510_set_mivr(g_sgm->chg_dev, uV);
 }
 
-void oplus_sgm41510_safe_charging_status_check()
+void oplus_sgm41510_safe_charging_status_check(void)
 {
 	struct oplus_chg_chip *chip = g_oplus_chip;
 	struct charger_manager *info = NULL;
