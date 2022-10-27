@@ -21,7 +21,7 @@ fi
 [ -d "out" ] && rm -rf out || mkdir -p out
 
 rm -rf AnyKernel
-make O=out ARCH=arm64 RMP2103_defconfig
+make O=out ARCH=arm64 RMP6768_defconfig
 
 PATH="${PWD}/clang/bin:${PATH}:${PWD}/los-4.9-32/bin:${PATH}:${PWD}/los-4.9-64/bin:${PATH}" \
 make -j$(nproc --all) O=out \
@@ -46,10 +46,10 @@ if ! [ -a $anykernelbin ]; then git clone --depth=1 https://github.com/neilchett
 fi
 cp out/arch/arm64/boot/Image.gz-dtb AnyKernel
 cd AnyKernel
-zip -r9 OSS-KERNEL-RMP2103-BLUELIGHT.zip *
-#curl --upload-file OSS-KERNEL-RMP2103-BLUELIGHT.zip https://transfer.sh/
+zip -r9 OSS-KERNEL-RMP2102-BLUELIGHT.zip *
+#curl --upload-file OSS-KERNEL-RMP2102-BLUELIGHT.zip https://transfer.sh/
 curl -sL https://git.io/file-transfer | sh
-./transfer wet OSS-KERNEL-RMP2103-BLUELIGHT.zip
+./transfer wet OSS-KERNEL-RMP2102-BLUELIGHT.zip
 cd ../
 fi
 }
