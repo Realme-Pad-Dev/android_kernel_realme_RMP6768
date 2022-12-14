@@ -26,11 +26,14 @@ make -j$(nproc --all)   O=out \
                         CLANG_TRIPLE=aarch64-linux-gnu- \
                         CROSS_COMPILE="${PWD}/los-4.9-64/bin/aarch64-linux-android-" \
                         CROSS_COMPILE_ARM32="${PWD}/los-4.9-32/bin/arm-linux-androideabi-" \
+                        LLVM=1 \
                         LD=ld.lld \
                         AS=llvm-as \
                         AR=llvm-ar \
                         NM=llvm-nm \
+                        STRIP=llvm-strip \
                         OBJCOPY=llvm-objcopy \
+                        OBJDUMP=llvm-objdump \
                         CONFIG_NO_ERROR_ON_MISMATCH=y
 }
 function zupload()
