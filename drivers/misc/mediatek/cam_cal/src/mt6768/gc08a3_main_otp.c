@@ -115,7 +115,7 @@ static void write_cmos_sensor_8(kal_uint32 addr, kal_uint32 para)
 	iWriteRegI2C(pu_send_cmd, 3);
 }
 
-static void  gc08a3_otp_enable(){
+static void  gc08a3_otp_enable(void){
 	LOG_INF("start");
     write_cmos_sensor_8(0x0324, 0x44);
     write_cmos_sensor_8(0x0316, 0x09); // [3] otpclk_en
@@ -131,7 +131,7 @@ static void  gc08a3_otp_enable(){
 
 }
 
-static void  gc08a3_otp_disable(){
+static void  gc08a3_otp_disable(void){
 	LOG_INF("start");
     write_cmos_sensor_8(0x0316, 0x01);
     write_cmos_sensor_8(0x0A67, 0x00);
@@ -366,7 +366,7 @@ static void gc08a3_dump_otp(kal_uint8 *data, kal_uint32 OtpSize, unsigned int se
 }
 
 
-static void gc08a3_read_otp(){
+static void gc08a3_read_otp(void){
 	LOG_INF_IF("start");
     gc08a3_otp_enable();
 

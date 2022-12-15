@@ -1295,7 +1295,7 @@ static int camkit_probe_sensor(struct IMGSENSOR_SENSOR *psensor)
 int adopt_camera_hw_probe_sensor(void *pBuf)
 {
 	uint32 ret;
-	static open_flag;
+	static int open_flag;
 
 	struct camkit_probe_sensor_params *user_params = NULL;
 	struct IMGSENSOR_SENSOR               *psensor = NULL;

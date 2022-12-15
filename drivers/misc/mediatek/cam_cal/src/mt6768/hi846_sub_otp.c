@@ -115,7 +115,7 @@ static void write_cmos_sensor_8(kal_uint32 addr, kal_uint32 para)
 	iWriteRegI2C(pu_send_cmd, 3);
 }
 
-static void  hi846_otp_enable(){
+static void  hi846_otp_enable(void){
 	LOG_INF("start");
     write_cmos_sensor_8(0x0A02, 0x01);
     write_cmos_sensor_8(0x0A00, 0x00);
@@ -130,7 +130,7 @@ static void  hi846_otp_enable(){
     Sleep(1);
 }
 
-static void  hi846_otp_disable(){
+static void  hi846_otp_disable(void){
 	LOG_INF("start");
 	write_cmos_sensor_8(0x0A00, 0x00); // stand by on
 	Sleep(10);
@@ -354,7 +354,7 @@ static void hi846_dump_otp(kal_uint8 *data, kal_uint32 OtpSize, unsigned int sen
 }
 
 
-static void hi846_read_otp(){
+static void hi846_read_otp(void){
 	LOG_INF_IF("start");
     hi846_otp_enable();
 

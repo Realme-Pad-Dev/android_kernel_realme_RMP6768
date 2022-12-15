@@ -1914,7 +1914,7 @@ static const struct file_operations awinic_sar_fops = {
 	.owner = THIS_MODULE,
 };
 
-static int awinic_misc_init()
+static int awinic_misc_init(void)
 {
 	int err;
 

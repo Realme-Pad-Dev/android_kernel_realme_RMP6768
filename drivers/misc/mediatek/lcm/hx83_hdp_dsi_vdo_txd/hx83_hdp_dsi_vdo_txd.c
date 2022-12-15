@@ -509,7 +509,7 @@ static void lcm_set_gpio_output(unsigned int GPIO, unsigned int output)
 	gpio_set_value(GPIO, output);
 }
 
-static void lcm_bias_regulator_init()
+static void lcm_bias_regulator_init(void)
 {
     // GPIO for DSV setting
 	lcm_set_gpio_output(GPIO_LCD_1V8, 1);
