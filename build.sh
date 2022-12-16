@@ -8,7 +8,7 @@ export ARCH=arm64
 export KBUILD_BUILD_HOST=localhost
 export KBUILD_BUILD_USER="root"
 clangbin=clang/bin/clang
-if ! [ -a $clangbin ]; then git clone --depth=1 https://github.com/Realme-Pad-Dev/android_prebuilts_clang_host_linux-x86_clang-r437112 clang
+if ! [ -a $clangbin ]; then git clone --depth=1 https://github.com/ArrowOS-Devices/android_prebuilts_clang_host_linux-x86_clang-r437112 clang
 fi
 gcc64bin=los-4.9-64/bin/aarch64-linux-android-as
 if ! [ -a $gcc64bin ]; then git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 los-4.9-64
@@ -44,7 +44,7 @@ then
 echo  " Failed To Compile Kernel"
 else
 echo -e " Kernel Compile Successful"
-git clone --depth=1 https://github.com/neilchetty/AnyKernel3 -b RMP6768 AnyKernel
+git clone --depth=1 https://github.com/neilchetty/AnyKernel3 AnyKernel
 cp out/arch/arm64/boot/Image.gz-dtb AnyKernel
 cd AnyKernel
 zip -r9 OSS-KERNEL-Realme-Pad.zip *
