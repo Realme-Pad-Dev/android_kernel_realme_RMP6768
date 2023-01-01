@@ -212,8 +212,6 @@ struct irq_data {
  *				  mask. Applies only to affinity managed irqs.
  * IRQD_SINGLE_TARGET		- IRQ allows only a single affinity target
  * IRQD_DEFAULT_TRIGGER_SET	- Expected trigger already been set
- * IRQD_AFFINITY_ON_ACTIVATE	- Affinity is set on activation. Don't call
- *				  irq_chip::irq_set_affinity() when deactivated.
  * IRQD_PERF_CRITICAL		- IRQ is performance-critical
  */
 enum {
@@ -236,11 +234,7 @@ enum {
 	IRQD_MANAGED_SHUTDOWN		= (1 << 23),
 	IRQD_SINGLE_TARGET		= (1 << 24),
 	IRQD_DEFAULT_TRIGGER_SET	= (1 << 25),
-<<<<<<< HEAD
-	IRQD_AFFINITY_ON_ACTIVATE	= (1 << 29),
-=======
 	IRQD_PERF_CRITICAL		= (1 << 26),
->>>>>>> 156870d1fbd5 (kernel: Add bi-cluster API to affine IRQs and kthreads to fast CPUs)
 };
 
 #define __irqd_to_state(d) ACCESS_PRIVATE((d)->common, state_use_accessors)
@@ -387,12 +381,12 @@ static inline bool irqd_is_managed_and_shutdown(struct irq_data *d)
 
 static inline void irqd_set_affinity_on_activate(struct irq_data *d)
 {
-	__irqd_to_state(d) |= IRQD_AFFINITY_ON_ACTIVATE;
+	__irqd_to_state(d) |= IRQD_AFFINITY_MANAGED;
 }
 
 static inline bool irqd_affinity_on_activate(struct irq_data *d)
 {
-	return __irqd_to_state(d) & IRQD_AFFINITY_ON_ACTIVATE;
+	return __irqd_to_state(d) & IRQD_AFFINITY_MANAGED;
 }
 #undef __irqd_to_state
 
