@@ -438,7 +438,7 @@
 
 /* DISPSYS GPIO standardization end*/
 
-#include <oppo8786/cust.dtsi>
+#include "mediatek/oppo8786/cust.dtsi"
 #include "mediatek/cust_mt6768_camera.dtsi"
 #include "mediatek/cust_mt6768_hall.dtsi"
 #include "mediatek/cust_mt6768_touch_1080x2160.dtsi"
