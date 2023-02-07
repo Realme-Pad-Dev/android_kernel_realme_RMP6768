@@ -2,8 +2,13 @@ BRANCH=android-4.14
 
 CC=clang
 LD=ld.lld
-CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r383902/bin
+LLVM=1
+
 BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
+CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r475365b/bin
+LD_LIBRARY_PATH=prebuilts-master/clang/host/linux-x86/clang-r475365b/lib64:$$LD_LIBRARY_PATH
 
 EXTRA_CMDS=''
 STOP_SHIP_TRACEPRINTK=1
+IN_KERNEL_MODULES=1
+DO_NOT_STRIP_MODULES=1

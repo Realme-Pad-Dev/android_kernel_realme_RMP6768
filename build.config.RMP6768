@@ -1,0 +1,15 @@
+# Inheriting configs from ACK
+. ${ROOT_DIR}/${KERNEL_DIR}/build.config.common
+. ${ROOT_DIR}/${KERNEL_DIR}/build.config.aarch64
+
+# Define kernel source and defconfig.
+DEFCONFIG=RMP6768_defconfig
+KERNEL_DIR=kernel/realme/RMP6768
+
+# Artifacts to be copied over for the prebuilt repo.
+FILES+="
+arch/arm64/boot/Image.gz
+arch/arm64/boot/dts/mediatek/oppo8786.dtb
+arch/arm64/boot/dts/mediatek/mt6768.dtb
+arch/arm64/boot/dts/mediatek/oppo8786.dtbo
+"
