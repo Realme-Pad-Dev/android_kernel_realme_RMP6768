@@ -1324,6 +1324,12 @@ config BUILD_ARM64_DTB_OVERLAY_IMAGE_NAMES
 	  Space separated list of names of dtbs to append when
 	  building a concatenated overlay image
 
+config BUILD_ARM64_DTBO_IMG
+	bool "Makes dtbo image"
+	default n
+	help
+	  Make dtbo image from the given .dtbo files
+
 endmenu
 
 menu "Userspace binary formats"

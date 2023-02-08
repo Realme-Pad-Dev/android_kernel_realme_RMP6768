@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 4.14.304 Kernel Configuration
+# Linux/arm64 4.14.305 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_64BIT=y
@@ -597,6 +597,7 @@ CONFIG_IMG_GZ_DTB=y
 CONFIG_BUILD_ARM64_APPENDED_KERNEL_IMAGE_NAME="Image.gz-dtb"
 CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES="mediatek/mt6768 mediatek/oppo8786"
 CONFIG_BUILD_ARM64_DTB_OVERLAY_IMAGE_NAMES="mediatek/oppo8786"
+CONFIG_BUILD_ARM64_DTBO_IMG=y
 
 #
 # Userspace binary formats
