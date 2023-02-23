@@ -12,5 +12,4 @@ arch/arm64/boot/Image.gz
 arch/arm64/boot/dtbo.img
 arch/arm64/boot/dts/mediatek/oppo8786.dtb
 arch/arm64/boot/dts/mediatek/mt6768.dtb
-arch/arm64/boot/dts/mediatek/oppo8786.dtbo
 "
