@@ -707,7 +707,7 @@
 
 /* DISPSYS GPIO standardization end*/
 
-#include "mediatek/cust.dtsi"
+#include "mediatek/oppo8786/cust.dtsi"
 #include "mediatek/cust_mt6768_camera.dtsi"
 #include "mediatek/nt36523_hx83102-spi.dtsi"
 #include "mediatek/cust_mt6768_sar.dtsi"

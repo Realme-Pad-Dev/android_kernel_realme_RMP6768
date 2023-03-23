@@ -283,7 +283,7 @@
 
 &i2c7 {
         i2c_lcd_bias@3e {
-            compatibel = "mediatek,i2c_lcd_bias";
+            compatible = "mediatek,i2c_lcd_bias";
             reg = <0x3E>;
 			status = "okay";
         };
@@ -438,7 +438,7 @@
 
 /* DISPSYS GPIO standardization end*/
 
-#include "mediatek/oppo8786/cust.dtsi"
+#include "mediatek/oppo8786_21697/cust.dtsi"
 #include "mediatek/cust_mt6768_camera.dtsi"
 #include "mediatek/cust_mt6768_hall.dtsi"
 #include "mediatek/cust_mt6768_touch_1080x2160.dtsi"
