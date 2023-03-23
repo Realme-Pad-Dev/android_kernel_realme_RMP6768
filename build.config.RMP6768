@@ -27,8 +27,10 @@ KERNEL_DIR=kernel/realme/RMP6768
 FILES="
 arch/arm64/boot/Image
 arch/arm64/boot/Image.gz
-arch/arm64/boot/dts/mediatek/oppo8786.dtb
 arch/arm64/boot/dts/mediatek/mt6768.dtb
+arch/arm64/boot/dts/mediatek/oppo8786.dtb
+arch/arm64/boot/dts/mediatek/oppo8786_wlan.dtb
+arch/arm64/boot/dts/mediatek/oppo8786_21697.dtb
 vmlinux
 System.map
 "

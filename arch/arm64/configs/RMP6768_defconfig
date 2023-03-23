@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 4.14.306 Kernel Configuration
+# Linux/arm64 4.14.309 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_64BIT=y
@@ -595,8 +595,8 @@ CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE=y
 CONFIG_IMG_GZ_DTB=y
 # CONFIG_IMG_DTB is not set
 CONFIG_BUILD_ARM64_APPENDED_KERNEL_IMAGE_NAME="Image.gz-dtb"
-CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES="mediatek/mt6768 mediatek/oppo8786"
-CONFIG_BUILD_ARM64_DTB_OVERLAY_IMAGE_NAMES="mediatek/oppo8786"
+CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES="mediatek/mt6768 mediatek/oppo8786 mediatek/oppo8786_wlan mediatek/oppo8786_21697"
+CONFIG_BUILD_ARM64_DTB_OVERLAY_IMAGE_NAMES="mediatek/oppo8786 mediatek/oppo8786_wlan mediatek/oppo8786_21697"
 
 #
 # Userspace binary formats
@@ -1076,7 +1076,6 @@ CONFIG_NET_SCH_INGRESS=y
 #
 CONFIG_NET_CLS=y
 # CONFIG_NET_CLS_BASIC is not set
-# CONFIG_NET_CLS_TCINDEX is not set
 # CONFIG_NET_CLS_ROUTE4 is not set
 # CONFIG_NET_CLS_FW is not set
 CONFIG_NET_CLS_U32=y
