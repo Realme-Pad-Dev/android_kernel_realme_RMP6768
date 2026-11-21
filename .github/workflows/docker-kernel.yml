@@ -1,0 +1,153 @@
+name: Realme Pad Docker Kernel Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - docker-kernel-build
+    paths:
+      - ".github/workflows/docker-kernel.yml"
+      - "docker.config"
+      - "arch/arm64/configs/RMP6768_defconfig"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ARM64 kernel (RMP6768)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+        with:
+          ref: docker-kernel-build
+          fetch-depth: 1
+
+      - name: Install host build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison build-essential flex git libelf-dev libssl-dev \
+            lz4 libncurses-dev python3 python3-pip rsync unzip zip
+
+      - name: Download the matching Android toolchains
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Clang r487747 from the AOSP Android 14 prebuilts repository.
+          CLANG_DIR="$GITHUB_WORKSPACE/prebuilts-master/clang/host/linux-x86/clang-r487747"
+          mkdir -p "$CLANG_DIR"
+          curl --fail --location --retry 3 \
+            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/0081f4e1b3f5f835f154d52aef78d6326a583fd1/clang-r487747.tar.gz" \
+            --output /tmp/clang-r487747.tar.gz
+          tar -xzf /tmp/clang-r487747.tar.gz -C "$CLANG_DIR"
+
+          # GCC 4.9 cross tools used by this kernel's build config.
+          mkdir -p "$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/aarch64"
+          mkdir -p "$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/arm"
+          git clone --depth=1 --branch lineage-19.1 \
+            https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git \
+            "$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/aarch64/aarch64-linux-android-4.9"
+          git clone --depth=1 --branch lineage-19.1 \
+            https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9.git \
+            "$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/arm/arm-linux-androideabi-4.9"
+
+          CLANG="$CLANG_DIR/bin/clang"
+          GCC64="$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-gcc"
+          GCC32="$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/arm/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-gcc"
+          for tool in "$CLANG" "$GCC64" "$GCC32"; do
+            if [[ ! -x "$tool" ]]; then
+              echo "::error::Toolchain component missing or not executable: $tool"
+              exit 1
+            fi
+          done
+          "$CLANG" --version
+          "$GCC64" --version | head -n 1
+          "$GCC32" --version | head -n 1
+
+      - name: Merge Docker kernel configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s docker.config
+          mkdir -p out
+          scripts/kconfig/merge_config.sh -m -O out \
+            arch/arm64/configs/RMP6768_defconfig docker.config
+          make O=out ARCH=arm64 olddefconfig
+
+      - name: Verify Docker kernel configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONFIG=out/.config
+          required=(
+            CONFIG_SYSVIPC
+            CONFIG_POSIX_MQUEUE
+            CONFIG_IPC_NS
+            CONFIG_BLK_CGROUP
+            CONFIG_CFS_BANDWIDTH
+            CONFIG_CGROUP_PIDS
+            CONFIG_CGROUP_DEVICE
+            CONFIG_BRIDGE_NETFILTER
+            CONFIG_NETFILTER_XT_MATCH_ADDRTYPE
+            CONFIG_NETFILTER_XT_MATCH_MULTIPORT
+          )
+          for symbol in "${required[@]}"; do
+            if ! grep -qx "${symbol}=y" "$CONFIG"; then
+              echo "::error::Required setting is not enabled: ${symbol}"
+              grep -E "^(# )?${symbol}(=| is not set)" "$CONFIG" || true
+              exit 1
+            fi
+            echo "OK: ${symbol}=y"
+          done
+          grep -qx 'CONFIG_LOCALVERSION="-Quark-Fusion"' "$CONFIG"
+
+      - name: Compile kernel
+        shell: bash
+        run: |
+          set -euo pipefail
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export LLVM=1
+          export LLVM_IAS=1
+          export LD=ld.lld
+          export CLANG_TRIPLE=aarch64-linux-gnu-
+          export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/prebuilts-master/clang/host/linux-x86/clang-r487747/lib64:${LD_LIBRARY_PATH:-}"
+          export PATH="$GITHUB_WORKSPACE/prebuilts-master/clang/host/linux-x86/clang-r487747/bin:$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin:$GITHUB_WORKSPACE/prebuilts-master/gcc/linux-x86/arm/arm-linux-androideabi-4.9/bin:$PATH"
+          make O=out ARCH=arm64 \
+            CC=clang \
+            LLVM=1 LLVM_IAS=1 LD=ld.lld \
+            CROSS_COMPILE=aarch64-linux-android- \
+            CROSS_COMPILE_ARM32=arm-linux-androideabi- \
+            CLANG_TRIPLE=aarch64-linux-gnu- \
+            -j2
+
+      - name: Check expected kernel outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          find out/arch/arm64/boot -maxdepth 1 -type f -printf '%f %s bytes\\n' || true
+          test -s out/arch/arm64/boot/Image
+          mkdir -p artifacts
+          cp out/arch/arm64/boot/Image artifacts/
+          [[ ! -s out/arch/arm64/boot/Image.gz ]] || cp out/arch/arm64/boot/Image.gz artifacts/
+          [[ ! -s out/arch/arm64/boot/Image.gz-dtb ]] || cp out/arch/arm64/boot/Image.gz-dtb artifacts/
+          [[ ! -s out/arch/arm64/boot/dts/mediatek/mt6768.dtb ]] || cp out/arch/arm64/boot/dts/mediatek/mt6768.dtb artifacts/
+          [[ ! -s out/arch/arm64/boot/dts/mediatek/oppo8786.dtb ]] || cp out/arch/arm64/boot/dts/mediatek/oppo8786.dtb artifacts/
+          [[ ! -s out/vmlinux ]] || cp out/vmlinux artifacts/
+          [[ ! -s out/System.map ]] || cp out/System.map artifacts/
+          cp out/.config artifacts/kernel.config
+          git rev-parse HEAD > artifacts/source-commit.txt
+          du -h artifacts/*
+
+      - name: Upload kernel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: realme-pad-docker-kernel
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 14
